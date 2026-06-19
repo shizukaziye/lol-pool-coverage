@@ -201,15 +201,67 @@ def write_registry(patch: str) -> None:
     log.info("wrote %s (current_patch=%s, %d patches)", reg_path, patch, len(patches))
 
 
+def _patch_sort_key(label: str):
+    """Sort patches newest-first: (major, minor) descending. '16.10' > '16.9'."""
+    try:
+        parts = [int(x) for x in str(label).split(".")]
+        return parts
+    except ValueError:
+        return [0]
+
+
+def rebuild_registry() -> None:
+    """Rebuild data/patches.json from every snapshot directory present, ordering
+    patches by version so k_back is correct (newest = 0). Used after backfilling
+    historical patches. scraped_at is taken from each snapshot; is_final is set on
+    every non-current patch. Patches with k_back >= 20 are dropped."""
+    reg_path = DATA_DIR / "patches.json"
+    if not SNAP_DIR.exists():
+        log.error("no snapshots dir at %s", SNAP_DIR); return
+    labels = sorted(
+        (d.name for d in SNAP_DIR.iterdir() if d.is_dir()),
+        key=_patch_sort_key, reverse=True,
+    )
+    patches = []
+    for k, label in enumerate(labels):
+        if k >= 20:
+            break
+        # scraped_at from any lane snapshot for this patch.
+        scraped_at = now_utc_iso()
+        for lane in LANES:
+            sp = SNAP_DIR / label / f"{lane}.json"
+            if sp.exists():
+                try:
+                    scraped_at = json.loads(sp.read_text()).get("scraped_at") or scraped_at
+                    break
+                except Exception:
+                    pass
+        patches.append({"patch": label, "scraped_at": scraped_at, "is_final": k != 0, "k_back": k})
+    reg = {"schema_version": SCHEMA_VERSION, "current_patch": patches[0]["patch"] if patches else None, "patches": patches}
+    reg_path.write_text(json.dumps(reg, indent=2))
+    log.info("rebuilt %s (current=%s, %d patches: %s)", reg_path, reg["current_patch"], len(patches),
+             ", ".join(f"{p['patch']}(k{p['k_back']})" for p in patches))
+
+
 def write_champions(champ_accum: dict) -> None:
+    # Merge into any existing champions.json so backfilling an OLD patch (with a
+    # smaller roster) never drops champions that only newer patches have.
+    out_path = DATA_DIR / "champions.json"
     by_riot_id = {}
     by_slug = {}
+    if out_path.exists():
+        try:
+            prev = json.loads(out_path.read_text())
+            by_riot_id = dict(prev.get("by_riot_id", {}))
+            by_slug = dict(prev.get("by_slug", {}))
+        except Exception:
+            pass
     for rid, meta in champ_accum.items():
         by_riot_id[rid] = {"slug": meta["slug"], "name": meta["name"]}
         by_slug[meta["slug"]] = {"riot_id": int(rid), "name": meta["name"]}
     out = {"schema_version": SCHEMA_VERSION, "by_riot_id": by_riot_id, "by_slug": by_slug}
-    (DATA_DIR / "champions.json").write_text(json.dumps(out, indent=2, sort_keys=True))
-    log.info("wrote champions.json (%d champions)", len(by_riot_id))
+    out_path.write_text(json.dumps(out, indent=2, sort_keys=True))
+    log.info("champions.json now has %d champions", len(by_riot_id))
 
 
 def main() -> None:
@@ -217,10 +269,18 @@ def main() -> None:
     ap.add_argument("--lane", default="all", help="top/jungle/middle/bottom/support or 'all'")
     ap.add_argument("--min-pr", type=float, default=0.5, help="min lane pick-rate %% to include")
     ap.add_argument("--patch", default=None, help="override patch label (default: auto-detect current)")
+    ap.add_argument("--skip-registry", action="store_true",
+                    help="don't touch patches.json (use when backfilling a historical patch)")
+    ap.add_argument("--rebuild-registry", action="store_true",
+                    help="rebuild patches.json from all snapshot dirs and exit (no scraping)")
     args = ap.parse_args()
 
+    if args.rebuild_registry:
+        rebuild_registry()
+        return
+
     patch = args.patch or detect_patch()
-    log.info("current patch: %s", patch)
+    log.info("scraping patch: %s", patch)
     lanes = LANES if args.lane == "all" else [args.lane]
 
     champ_accum: dict = {}
@@ -228,8 +288,11 @@ def main() -> None:
         scrape_lane(lane, patch, args.min_pr, champ_accum)
 
     write_champions(champ_accum)
-    write_registry(patch)
-    log.info("done. Now run: python scraper/aggregate.py")
+    if args.skip_registry:
+        log.info("skipped registry write (--skip-registry)")
+    else:
+        write_registry(patch)
+    log.info("done.")
 
 
 if __name__ == "__main__":
