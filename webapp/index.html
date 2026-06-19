@@ -19,6 +19,8 @@
     <div class="status" id="status"></div>
   </header>
 
+  <div class="data-notice" id="data-notice" role="status" hidden></div>
+
   <main class="grid">
     <!-- Pool builder -->
     <section class="panel" id="pool-panel">
@@ -84,14 +86,14 @@
     <!-- Cut analysis -->
     <section class="panel" id="cut-panel">
       <h2>Cut analysis</h2>
-      <table class="results-table" id="cut-table"></table>
+      <div class="scroll-x"><table class="results-table" id="cut-table"></table></div>
       <p class="hint" id="cut-hint"></p>
     </section>
 
     <!-- Blind safety -->
     <section class="panel" id="blind-panel">
       <h2>Blind safety</h2>
-      <table class="results-table" id="blind-table"></table>
+      <div class="scroll-x"><table class="results-table" id="blind-table"></table></div>
     </section>
 
     <!-- Usage simulation -->

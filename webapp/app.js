@@ -16,6 +16,7 @@ const DEFAULT_STATE = () => ({
 const els = {
   laneTabs: document.getElementById("lane-tabs"),
   status: document.getElementById("status"),
+  dataNotice: document.getElementById("data-notice"),
 
   poolChips: document.getElementById("pool-chips"),
   poolSearch: document.getElementById("pool-search"),
@@ -110,6 +111,7 @@ if (!LANES.includes(lane)) lane = "top";
 
 let state = store.loadState(lane) || DEFAULT_STATE();
 let data = null;            // current weighted/{lane}.json
+let dataSource = "none";    // "weighted" | "fixture" | "none" — drives empty-state copy
 let champs = null;          // { by_riot_id, by_slug } (synthesized if no champions.json)
 
 function persist() { store.saveState(lane, state); }
@@ -162,6 +164,7 @@ async function loadLaneData() {
   try {
     const r = await fetch(primary);
     if (!r.ok) throw new Error(`${r.status}`);
+    dataSource = "weighted";
     setStatus(`Loaded ${lane} from data/weighted/`, "");
     return await r.json();
   } catch (e) {
@@ -169,9 +172,11 @@ async function loadLaneData() {
     try {
       const r = await fetch(fallback);
       if (!r.ok) throw new Error(`${r.status}`);
-      setStatus(`Using fixture: ${fallback}`, "warn");
+      dataSource = "fixture";
+      setStatus(`Sample data — weekly scrape hasn't run for ${lane}`, "warn");
       return await r.json();
     } catch (e2) {
+      dataSource = "none";
       setStatus(`No data for ${lane}. Run the scraper or add a fixture.`, "bad");
       return null;
     }
@@ -202,12 +207,31 @@ function ctx() {
   };
 }
 
+function renderDataNotice() {
+  if (!els.dataNotice) return;
+  if (dataSource === "fixture") {
+    els.dataNotice.className = "data-notice warn";
+    els.dataNotice.innerHTML = `<strong>Showing sample data.</strong> The weekly meta scrape hasn't produced <code>data/weighted/${lane}.json</code> yet — numbers below come from a small built-in fixture, not live patch data.`;
+    els.dataNotice.hidden = false;
+  } else if (dataSource === "none") {
+    els.dataNotice.className = "data-notice bad";
+    els.dataNotice.innerHTML = `<strong>No data loaded.</strong> Neither live data (<code>data/weighted/${lane}.json</code>) nor a fixture was found for this lane. Run the scraper to populate it.`;
+    els.dataNotice.hidden = false;
+  } else {
+    els.dataNotice.hidden = true;
+    els.dataNotice.innerHTML = "";
+  }
+}
+
 function renderAll() {
+  renderDataNotice();
   if (!data) {
+    const msg = `<strong>No meta data yet.</strong> The weekly scrape hasn't run for this lane, and no fixture was found. Run the scraper to populate <code>data/weighted/${lane}.json</code>.`;
     for (const t of [els.worstTable, els.addsTable, els.cutTable, els.blindTable]) {
-      t.innerHTML = `<tbody><tr><td class="empty-state">No data loaded.</td></tr></tbody>`;
+      t.innerHTML = `<tbody><tr><td class="empty-state no-data">${msg}</td></tr></tbody>`;
     }
-    els.usageBars.innerHTML = `<div class="empty-state">No data loaded.</div>`;
+    els.usageBars.innerHTML = `<div class="empty-state no-data">${msg}</div>`;
+    els.cutHint.textContent = "";
     return;
   }
   const c = ctx();
