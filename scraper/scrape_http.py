@@ -180,11 +180,15 @@ def write_registry(patch: str) -> None:
             pass
     reg["current_patch"] = patch
     patches = reg.get("patches", [])
-    # Upsert current patch at k_back 0; bump everyone else.
+    # Upsert current patch at k_back 0; bump everyone else. A new patch rolling
+    # out freezes the previous one (it's no longer re-scraped), so mark all
+    # non-current patches is_final — aggregate weights purely on k_back, so this
+    # flag is informational, but keeps the registry honest.
     existing = {p["patch"]: p for p in patches}
     if patch not in existing:
         for p in patches:
             p["k_back"] = p.get("k_back", 0) + 1
+            p["is_final"] = True
         patches.insert(0, {"patch": patch, "scraped_at": now_utc_iso(), "is_final": False, "k_back": 0})
     else:
         existing[patch]["scraped_at"] = now_utc_iso()
