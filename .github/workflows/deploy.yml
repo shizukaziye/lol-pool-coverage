@@ -1,0 +1,79 @@
+# GitHub Pages deploy.
+#
+# Deploy strategy: upload the repo root (minus scraper/, docs/, .github/, etc.)
+# so `webapp/` and `data/` remain siblings. The webapp does relative fetches
+# like `fetch('../data/weighted/top.json')`, which only works if both are
+# served at the same origin under their existing paths.
+#
+# A one-line redirect index.html at the repo root sends visitors to
+# /webapp/. So the public URL is e.g.
+#   https://<user>.github.io/lol-pool-coverage/         -> redirects to
+#   https://<user>.github.io/lol-pool-coverage/webapp/
+
+name: deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'webapp/**'
+      - 'data/**'
+      - 'index.html'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stage Pages artifact
+        # Copy only the files we want on the public site into _site/.
+        # Keeps scraper sources, docs, and CI config off the public URL.
+        run: |
+          mkdir -p _site
+          cp -R webapp _site/webapp
+          cp -R data   _site/data
+          if [ -f index.html ]; then
+            cp index.html _site/index.html
+          else
+            # Fallback redirect if the root index.html ever goes missing.
+            cat > _site/index.html <<'HTML'
+          <!doctype html>
+          <meta charset="utf-8">
+          <title>lol-pool-coverage</title>
+          <meta http-equiv="refresh" content="0; url=./webapp/">
+          <link rel="canonical" href="./webapp/">
+          <p>Redirecting to <a href="./webapp/">the app</a>&hellip;</p>
+          HTML
+          fi
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
