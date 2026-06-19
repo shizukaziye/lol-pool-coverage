@@ -11,6 +11,7 @@ const DEFAULT_STATE = () => ({
   blindRate: 0.40,
   minPr: 1.5,
   minGames: 100,
+  mainBuf: 1.0,
 });
 
 const els = {
@@ -34,6 +35,8 @@ const els = {
   minPrVal: document.getElementById("min-pr-val"),
   minGames: document.getElementById("min-games"),
   minGamesVal: document.getElementById("min-games-val"),
+  mainBuf: document.getElementById("main-buf"),
+  mainBufVal: document.getElementById("main-buf-val"),
 
   worstTable: document.getElementById("worst-table"),
   addsTable: document.getElementById("adds-table"),
@@ -255,10 +258,11 @@ function renderAll() {
     pool: state.pool,
     mains: state.mains,
     banned: state.banned,
-    buf: 1.0,
+    buf: state.mainBuf ?? 1.0,
     blindRate: state.blindRate,
     minPr: state.minPr,
     minGames: state.minGames,
+    topContributors: 6,
   };
   ui.renderChips(els.poolChips, state.pool, c, {
     onRemove: (id) => {
@@ -278,7 +282,10 @@ function renderAll() {
   });
 
   ui.renderWorst(els.worstTable, data, opts, c);
-  ui.renderAdds(els.addsTable, data, opts, c);
+  ui.renderAdds(els.addsTable, data, opts, c, (id) => {
+    if (!state.pool.includes(String(id))) state.pool = [...state.pool, String(id)];
+    persist(); renderAll();
+  });
   ui.renderCut(els.cutTable, els.cutHint, data, opts, c);
   ui.renderBlind(els.blindTable, data, opts, c);
   ui.renderUsage(els.usageBars, data, opts, c);
@@ -318,6 +325,9 @@ function syncSettingsControls() {
   els.minPrVal.textContent = Number(state.minPr).toFixed(1);
   els.minGames.value = state.minGames;
   els.minGamesVal.textContent = state.minGames;
+  const buf = state.mainBuf ?? 1.0;
+  if (els.mainBuf) els.mainBuf.value = buf;
+  if (els.mainBufVal) els.mainBufVal.textContent = Number(buf).toFixed(1);
 }
 
 function wireSettings() {
@@ -334,6 +344,11 @@ function wireSettings() {
   els.minGames.addEventListener("input", () => {
     state.minGames = Number(els.minGames.value);
     els.minGamesVal.textContent = state.minGames;
+    persist(); renderAll();
+  });
+  els.mainBuf?.addEventListener("input", () => {
+    state.mainBuf = Number(els.mainBuf.value);
+    els.mainBufVal.textContent = state.mainBuf.toFixed(1);
     persist(); renderAll();
   });
 }

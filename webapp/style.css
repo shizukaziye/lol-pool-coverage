@@ -316,8 +316,35 @@ body { min-height: 100vh; }
 .tag.cut { background: var(--bad); color: #fff; }
 .tag.main { background: var(--accent-2); color: #fff; }
 
-.contribs { color: var(--text-dim); font-size: 0.82em; white-space: normal; }
-.contribs .c-item { display: inline-flex; align-items: center; gap: 0.25em; margin-right: 0.7em; }
+/* Handles: a fixed grid of N slots so columns line up across every row. */
+.contribs {
+  color: var(--text-dim);
+  font-size: 0.82em;
+  display: grid;
+  grid-template-columns: repeat(var(--slots, 6), minmax(104px, 1fr));
+  gap: 4px 14px;
+  align-items: center;
+}
+.contribs .c-item { display: inline-flex; align-items: center; gap: 0.3em; min-width: 0; }
+.contribs .c-item .champ-cell { min-width: 0; }
+.contribs .c-item .champ-cell > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.contribs .c-item.c-empty { visibility: hidden; }
+.c-val { color: var(--text-dim); font-variant-numeric: tabular-nums; flex: 0 0 auto; }
+
+/* Clickable candidate in Best adds — click to add to your pool. */
+.add-cand {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  cursor: pointer;
+  padding: 2px 7px;
+  margin: -2px -7px;
+  border-radius: var(--radius);
+}
+.add-cand:hover, .add-cand:focus-visible { background: var(--row-hover); outline: 1px solid var(--accent); }
+.add-cand .add-plus { color: var(--accent); font-weight: 700; opacity: 0; transition: opacity .12s; }
+.add-cand:hover .add-plus, .add-cand:focus-visible .add-plus { opacity: 1; }
 
 /* ----- Usage bars ----- */
 .usage-bars { display: flex; flex-direction: column; gap: 0.45em; }

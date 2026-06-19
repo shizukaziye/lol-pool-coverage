@@ -130,8 +130,14 @@
       <h2>Settings</h2>
 
       <div class="setting">
-        <label>Mains <small>(+1 Δ2 buffer)</small></label>
+        <label>Mains <small>(champions you play above average)</small></label>
         <div class="mains-list" id="mains-list"></div>
+      </div>
+
+      <div class="setting">
+        <label for="main-buf">Main Δ2 buffer: <span id="main-buf-val">1.0</span></label>
+        <input type="range" id="main-buf" min="0" max="3" step="0.1" value="1.0" />
+        <p class="hint">Extra Δ2 your mains get for playing them better than the average sample. Set to 0 to turn the bonus off.</p>
       </div>
 
       <div class="setting">

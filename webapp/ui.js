@@ -134,20 +134,35 @@ export function renderWorst(table, data, opts, ctx) {
   table.innerHTML = html;
 }
 
-export function renderAdds(table, data, opts, ctx) {
+export function renderAdds(table, data, opts, ctx, onAdd) {
   const rows = candidateScores(data, opts).slice(0, 25);
   if (rows.length === 0 || rows.every((r) => r.score === 0)) {
     table.innerHTML = `<tbody><tr><td class="empty-state">No candidates score above 0 — either your pool covers everything or there's no data.</td></tr></tbody>`;
     return;
   }
-  let html = `<thead><tr><th title="A champion you don't currently play that you could add.">Candidate</th><th class="num" title="Best-adds score — how much coverage this champion would add, weighting each newly-answered threat by its pickrate. Higher = bigger upgrade.">Score</th><th title="The top threats this candidate would newly answer for you.">Handles (top 4)</th></tr></thead><tbody>`;
+  // How many handles to show per row — driven by opts.topContributors so every
+  // row reserves the same number of grid slots and the columns line up.
+  const slots = opts.topContributors || 6;
+  let html = `<thead><tr><th title="A champion you don't currently play that you could add. Click one to add it to your pool.">Candidate</th><th class="num" title="Best-adds score — how much coverage this champion would add, weighting each newly-answered threat by its pickrate. Higher = bigger upgrade.">Score</th><th title="The top threats this candidate would newly answer for you, with how much each contributes.">Handles (top ${slots})</th></tr></thead><tbody>`;
   for (const r of rows) {
     if (r.score <= 0) continue;
-    const contribs = r.contributors.map((c) => `<span class="c-item">${champCell(c.counter, ctx)} <span class="d2-neg">${fmt(c.contribution, 2)}</span></span>`).join("");
-    html += `<tr><td>${champCell(r.cand, ctx)}</td><td class="num">${fmt(r.score, 2)}</td><td class="contribs">${contribs}</td></tr>`;
+    const meta = ctx.champByRiotId(r.cand);
+    const cname = meta ? meta.name : r.cand;
+    let cells = r.contributors.map((c) =>
+      `<span class="c-item">${champCell(c.counter, ctx)}<span class="c-val">+${fmt(c.contribution, 1)}</span></span>`
+    );
+    // Pad to a fixed slot count so the grid columns align across every row.
+    while (cells.length < slots) cells.push(`<span class="c-item c-empty"></span>`);
+    const contribs = cells.join("");
+    html += `<tr><td><button type="button" class="add-cand" data-add="${r.cand}" title="Add ${escapeHtml(cname)} to your pool">${champCell(r.cand, ctx)}<span class="add-plus" aria-hidden="true">+</span></button></td><td class="num">${fmt(r.score, 2)}</td><td><div class="contribs" style="--slots:${slots}">${contribs}</div></td></tr>`;
   }
   html += `</tbody>`;
   table.innerHTML = html;
+  if (onAdd) {
+    table.querySelectorAll(".add-cand").forEach((btn) => {
+      btn.addEventListener("click", () => onAdd(btn.dataset.add));
+    });
+  }
 }
 
 export function renderCut(table, hint, data, opts, ctx) {
@@ -158,8 +173,17 @@ export function renderCut(table, hint, data, opts, ctx) {
     return;
   }
   const sortedByUnique = [...rows].sort((a, b) => a.unique - b.unique);
-  const safestCut = sortedByUnique[0];
   const mustKeep = [...rows].sort((a, b) => b.unique - a.unique)[0];
+  // Your best blind pick (least-negative blind score) is valuable to keep, so
+  // avoid flagging it as the safest cut. With 3+ champs there's always another
+  // candidate; with only 2 the notion is degenerate, so leave it.
+  const bestBlind = [...rows].sort((a, b) => b.blindScore - a.blindScore)[0];
+  let safestCut = sortedByUnique[0];
+  let avoidedBestBlind = false;
+  if (rows.length >= 3 && safestCut === bestBlind) {
+    const alt = sortedByUnique.find((r) => r !== bestBlind);
+    if (alt) { safestCut = alt; avoidedBestBlind = true; }
+  }
   let html = `<thead><tr><th title="A champion in your pool.">Champ</th><th class="num" title="Unique value — how much coverage you'd lose by dropping this champ (the threats only they answer, weighted by pickrate). Lower = safer to cut.">Unique value</th><th class="num" title="How many counters this champ is your single best answer for.">Best for #</th><th class="num" title="Blind score — sum of this champ's losing matchups, weighted by how common they are. Less negative = safer to blind.">Blind</th><th></th></tr></thead><tbody>`;
   for (const r of rows) {
     const tag = r === safestCut && rows.length > 1 ? `<span class="tag cut">safest cut</span>` :
@@ -171,7 +195,12 @@ export function renderCut(table, hint, data, opts, ctx) {
   if (rows.length > 1) {
     const sCutMeta = ctx.champByRiotId(safestCut.p);
     const mKeepMeta = ctx.champByRiotId(mustKeep.p);
-    hint.innerHTML = `Safest cut: <strong>${escapeHtml(sCutMeta ? sCutMeta.name : safestCut.p)}</strong> · Must keep: <strong>${escapeHtml(mKeepMeta ? mKeepMeta.name : mustKeep.p)}</strong>`;
+    const bBlindMeta = ctx.champByRiotId(bestBlind.p);
+    let note = "";
+    if (avoidedBestBlind && bBlindMeta) {
+      note = ` · Keeping <strong>${escapeHtml(bBlindMeta.name)}</strong> as your safest blind pick`;
+    }
+    hint.innerHTML = `Safest cut: <strong>${escapeHtml(sCutMeta ? sCutMeta.name : safestCut.p)}</strong> · Must keep: <strong>${escapeHtml(mKeepMeta ? mKeepMeta.name : mustKeep.p)}</strong>${note}`;
   } else hint.textContent = "";
 }
 
