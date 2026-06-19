@@ -1,8 +1,8 @@
 # lol-pool-coverage
 
-[![scrape](https://github.com/Shizukaziye/lol-pool-coverage/actions/workflows/scrape.yml/badge.svg)](https://github.com/Shizukaziye/lol-pool-coverage/actions/workflows/scrape.yml)
-[![deploy](https://github.com/Shizukaziye/lol-pool-coverage/actions/workflows/deploy.yml/badge.svg)](https://github.com/Shizukaziye/lol-pool-coverage/actions/workflows/deploy.yml)
-[![last data refresh](https://img.shields.io/github/last-commit/Shizukaziye/lol-pool-coverage/main?path=data&label=last%20data%20refresh)](https://github.com/Shizukaziye/lol-pool-coverage/commits/main/data)
+[![scrape](https://github.com/shizukaziye/lol-pool-coverage/actions/workflows/scrape.yml/badge.svg)](https://github.com/shizukaziye/lol-pool-coverage/actions/workflows/scrape.yml)
+[![deploy](https://github.com/shizukaziye/lol-pool-coverage/actions/workflows/deploy.yml/badge.svg)](https://github.com/shizukaziye/lol-pool-coverage/actions/workflows/deploy.yml)
+[![last data refresh](https://img.shields.io/github/last-commit/shizukaziye/lol-pool-coverage/main?path=data&label=last%20data%20refresh)](https://github.com/shizukaziye/lol-pool-coverage/commits/main/data)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 <!-- TODO: replace badge owner/repo once the actual GitHub repo slug is known. -->
@@ -56,7 +56,7 @@ docs/     — DATA_FORMAT.md and SCORING.md — the shared contracts between
 Clone and set up a Python environment for the scraper:
 
 ```sh
-git clone https://github.com/Shizukaziye/lol-pool-coverage.git
+git clone https://github.com/shizukaziye/lol-pool-coverage.git
 cd lol-pool-coverage
 
 python3.11 -m venv .venv
