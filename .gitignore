@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Node
+node_modules/
+
+# Editor
+.vscode/
+.idea/
+.DS_Store
+
+# Scraper temp / cache
+scraper/.cache/
+scraper/.cf-cookies.json
+.playwright/
+
+# Local-only data overrides
+data/local/
