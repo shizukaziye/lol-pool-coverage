@@ -41,6 +41,11 @@ const els = {
   cutHint: document.getElementById("cut-hint"),
   blindTable: document.getElementById("blind-table"),
   usageBars: document.getElementById("usage-bars"),
+
+  poolCta: document.getElementById("pool-cta"),
+  loadExample: document.getElementById("load-example"),
+  clearPool: document.getElementById("clear-pool"),
+  footerFreshness: document.getElementById("footer-freshness"),
 };
 
 // ---------- DDragon ----------
@@ -223,8 +228,16 @@ function renderDataNotice() {
   }
 }
 
+function renderPoolControls() {
+  const empty = state.pool.length === 0;
+  // Offer the example pool only when we actually have data to seed from.
+  if (els.poolCta) els.poolCta.hidden = !(empty && !!data);
+  if (els.clearPool) els.clearPool.hidden = empty;
+}
+
 function renderAll() {
   renderDataNotice();
+  renderPoolControls();
   if (!data) {
     const msg = `<strong>No meta data yet.</strong> The weekly scrape hasn't run for this lane, and no fixture was found. Run the scraper to populate <code>data/weighted/${lane}.json</code>.`;
     for (const t of [els.worstTable, els.addsTable, els.cutTable, els.blindTable]) {
@@ -271,16 +284,22 @@ function renderAll() {
 
 // ---------- Wiring ----------
 
+function setActiveTab(activeLane) {
+  for (const b of els.laneTabs.querySelectorAll(".lane-tab")) {
+    const isActive = b.dataset.lane === activeLane;
+    b.classList.toggle("active", isActive);
+    b.setAttribute("aria-selected", isActive ? "true" : "false");
+  }
+}
+
 function wireLaneTabs() {
+  setActiveTab(lane);
   for (const btn of els.laneTabs.querySelectorAll(".lane-tab")) {
-    btn.classList.toggle("active", btn.dataset.lane === lane);
     btn.addEventListener("click", async () => {
       if (btn.dataset.lane === lane) return;
       lane = btn.dataset.lane;
       store.saveLane(lane);
-      for (const b of els.laneTabs.querySelectorAll(".lane-tab")) {
-        b.classList.toggle("active", b.dataset.lane === lane);
-      }
+      setActiveTab(lane);
       state = store.loadState(lane) || DEFAULT_STATE();
       syncSettingsControls();
       data = await loadLaneData();
@@ -317,6 +336,36 @@ function wireSettings() {
   });
 }
 
+function examplePoolIds(n = 3) {
+  // Top-N champions by pickrate in the current lane — guaranteed present in
+  // this lane's data, so the example always works regardless of lane.
+  if (!data || !data.tierlist) return [];
+  return Object.entries(data.tierlist)
+    .map(([id, info]) => ({ id, pr: info?.pr ?? 0 }))
+    .sort((a, b) => b.pr - a.pr)
+    .slice(0, n)
+    .map((x) => x.id);
+}
+
+function wirePoolControls() {
+  els.loadExample?.addEventListener("click", () => {
+    const ids = examplePoolIds(3);
+    if (ids.length === 0) return;
+    // Merge into the pool through the same path add/remove uses, idempotently.
+    const set = new Set(state.pool);
+    for (const id of ids) set.add(String(id));
+    state.pool = [...set];
+    persist();
+    renderAll();
+  });
+  els.clearPool?.addEventListener("click", () => {
+    state.pool = [];
+    state.mains = [];
+    persist();
+    renderAll();
+  });
+}
+
 function attachSearches() {
   const c = ctx();
   // Pool search: only champs not already in pool.
@@ -334,6 +383,37 @@ function attachSearches() {
     },
     filter: (champ) => !state.banned.includes(String(champ.riot_id)),
   });
+}
+
+// ---------- Footer freshness (patch + data date) ----------
+
+async function renderFooterFreshness() {
+  if (!els.footerFreshness) return;
+  try {
+    const reg = await fetch("../data/patches.json").then((r) => {
+      if (!r.ok) throw new Error(String(r.status));
+      return r.json();
+    });
+    const current = reg.current_patch;
+    const entry = Array.isArray(reg.patches)
+      ? reg.patches.find((p) => p.patch === current) || reg.patches[0]
+      : null;
+    const parts = [];
+    if (current) parts.push(`Patch ${current}`);
+    const iso = entry?.scraped_at;
+    if (iso) {
+      const d = new Date(iso);
+      if (!Number.isNaN(d.getTime())) {
+        // YYYY-MM-DD in the viewer's locale-independent ISO form.
+        parts.push(`data updated ${d.toISOString().slice(0, 10)}`);
+      }
+    }
+    els.footerFreshness.textContent = parts.join(" · ");
+  } catch (e) {
+    // Degrade gracefully: leave the freshness line empty if absent/unreadable.
+    console.warn("patches.json freshness fetch failed", e);
+    els.footerFreshness.textContent = "";
+  }
 }
 
 // ---------- Boot ----------
@@ -355,6 +435,8 @@ function attachSearches() {
   syncSettingsControls();
   wireLaneTabs();
   wireSettings();
+  wirePoolControls();
   attachSearches();
   renderAll();
+  renderFooterFreshness();
 })();

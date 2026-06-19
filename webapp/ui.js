@@ -57,7 +57,21 @@ export function attachSearch(input, results, ctx, { onPick, filter = () => true 
     results.innerHTML = items.map((c, i) => `<li role="option" data-id="${c.riot_id}" class="${i === activeIdx ? "active" : ""}"><img src="${ctx.iconUrl(c.slug)}" alt="" onerror="this.style.visibility='hidden'"/><span>${escapeHtml(c.name)}</span></li>`).join("");
     results.classList.add("open");
     [...results.children].forEach((li) => {
-      li.addEventListener("mousedown", (ev) => { ev.preventDefault(); onPick?.(li.dataset.id); input.value = ""; close(); });
+      // mousedown fires before the input's blur (so the dropdown is still open);
+      // a click listener covers programmatic clicks and edge cases where mousedown
+      // didn't fire. Guard so a real pointer interaction (mousedown -> click) only
+      // picks once. onPick is also idempotent on the state side.
+      let picked = false;
+      const pick = (ev) => {
+        ev.preventDefault();
+        if (picked) return;
+        picked = true;
+        onPick?.(li.dataset.id);
+        input.value = "";
+        close();
+      };
+      li.addEventListener("mousedown", pick);
+      li.addEventListener("click", pick);
     });
   }
   input.addEventListener("input", () => render(input.value));
@@ -104,7 +118,7 @@ export function renderWorst(table, data, opts, ctx) {
     return;
   }
   const pool = opts.pool;
-  let html = `<thead><tr><th>Counter</th><th class="num">PR%</th><th>Eff Δ2</th><th>By</th>`;
+  let html = `<thead><tr><th title="A popular meta pick in this lane that you draft against.">Counter</th><th class="num" title="Pickrate: how often this champion is played in this lane.">PR%</th><th title="Effective Δ2 — your pool's best answer to this counter, with the +1 buffer applied if that answer is a main. Higher is better.">Eff Δ2</th><th title="Which pool member gives that best answer.">By</th>`;
   for (const p of pool) html += `<th>${champCell(p, ctx)}</th>`;
   html += `</tr></thead><tbody>`;
   for (const r of rows) {
@@ -126,7 +140,7 @@ export function renderAdds(table, data, opts, ctx) {
     table.innerHTML = `<tbody><tr><td class="empty-state">No candidates score above 0 — either your pool covers everything or there's no data.</td></tr></tbody>`;
     return;
   }
-  let html = `<thead><tr><th>Candidate</th><th class="num">Score</th><th>Handles (top 4)</th></tr></thead><tbody>`;
+  let html = `<thead><tr><th title="A champion you don't currently play that you could add.">Candidate</th><th class="num" title="Best-adds score — how much coverage this champion would add, weighting each newly-answered threat by its pickrate. Higher = bigger upgrade.">Score</th><th title="The top threats this candidate would newly answer for you.">Handles (top 4)</th></tr></thead><tbody>`;
   for (const r of rows) {
     if (r.score <= 0) continue;
     const contribs = r.contributors.map((c) => `<span class="c-item">${champCell(c.counter, ctx)} <span class="d2-neg">${fmt(c.contribution, 2)}</span></span>`).join("");
@@ -146,7 +160,7 @@ export function renderCut(table, hint, data, opts, ctx) {
   const sortedByUnique = [...rows].sort((a, b) => a.unique - b.unique);
   const safestCut = sortedByUnique[0];
   const mustKeep = [...rows].sort((a, b) => b.unique - a.unique)[0];
-  let html = `<thead><tr><th>Champ</th><th class="num">Unique value</th><th class="num">Best for #</th><th class="num">Blind</th><th></th></tr></thead><tbody>`;
+  let html = `<thead><tr><th title="A champion in your pool.">Champ</th><th class="num" title="Unique value — how much coverage you'd lose by dropping this champ (the threats only they answer, weighted by pickrate). Lower = safer to cut.">Unique value</th><th class="num" title="How many counters this champ is your single best answer for.">Best for #</th><th class="num" title="Blind score — sum of this champ's losing matchups, weighted by how common they are. Less negative = safer to blind.">Blind</th><th></th></tr></thead><tbody>`;
   for (const r of rows) {
     const tag = r === safestCut && rows.length > 1 ? `<span class="tag cut">safest cut</span>` :
                 r === mustKeep && rows.length > 1 ? `<span class="tag keep">must keep</span>` : "";
@@ -167,7 +181,7 @@ export function renderBlind(table, data, opts, ctx) {
     table.innerHTML = `<tbody><tr><td class="empty-state">Add pool champions to see blind safety.</td></tr></tbody>`;
     return;
   }
-  let html = `<thead><tr><th>Champ</th><th class="num">Blind (raw)</th><th class="num">Avg Δ2 (PR-weighted)</th></tr></thead><tbody>`;
+  let html = `<thead><tr><th title="A champion in your pool.">Champ</th><th class="num" title="Blind score — sum of this champ's losing matchups, each weighted by how common that opponent is. Less negative (closer to 0) = safer to blind-pick.">Blind (raw)</th><th class="num" title="Average Δ2 across every counter you have data for, weighted by pickrate. A normalized read on overall matchup spread.">Avg Δ2 (PR-weighted)</th></tr></thead><tbody>`;
   for (const r of rows) {
     html += `<tr><td>${champCell(r.p, ctx)}</td>${d2Cell(r.blind)}${d2Cell(r.blindWeighted)}</tr>`;
   }

@@ -3,23 +3,103 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LoL Pool Coverage</title>
+
+  <title>LoL Pool Coverage — League Champion Pool &amp; Matchup Analyzer</title>
+  <meta name="description" content="Analyze your League of Legends champion pool against the live-patch meta: see which meta picks counter you, who's best to add, who's safe to cut, and what you can blind-pick." />
+  <meta name="theme-color" content="#0e1116" />
+
+  <!-- Open Graph / social sharing -->
+  <meta property="og:title" content="LoL Pool Coverage — League Champion Pool &amp; Matchup Analyzer" />
+  <meta property="og:description" content="Find the holes in your champion pool. Pick a lane and the champions you play — see which meta picks beat you, who to add, who to cut, and what's safe to blind-pick." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://shizukaziye.github.io/lol-pool-coverage/" />
+  <!-- TODO og image --><meta property="og:image" content="https://shizukaziye.github.io/lol-pool-coverage/og-image.png" />
+
+  <!-- Twitter card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="LoL Pool Coverage — League Champion Pool &amp; Matchup Analyzer" />
+  <meta name="twitter:description" content="Find the holes in your champion pool: which meta picks beat you, who to add, who to cut, and what's safe to blind-pick." />
+
+  <!-- Inline SVG favicon: a shield crest with a "PC" monogram in the accent color -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2 4 6v9c0 7 5 12 12 15 7-3 12-8 12-15V6L16 2z' fill='%230e1116' stroke='%235b8def' stroke-width='2' stroke-linejoin='round'/%3E%3Ctext x='16' y='21' font-family='Helvetica,Arial,sans-serif' font-size='12' font-weight='bold' fill='%235b8def' text-anchor='middle'%3EPC%3C/text%3E%3C/svg%3E" />
+
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="topbar">
     <h1>LoL Pool Coverage</h1>
     <nav class="lane-tabs" id="lane-tabs" role="tablist">
-      <button class="lane-tab" data-lane="top" role="tab">Top</button>
-      <button class="lane-tab" data-lane="jungle" role="tab">Jungle</button>
-      <button class="lane-tab" data-lane="middle" role="tab">Middle</button>
-      <button class="lane-tab" data-lane="bottom" role="tab">Bottom</button>
-      <button class="lane-tab" data-lane="support" role="tab">Support</button>
+      <button class="lane-tab" data-lane="top" role="tab" aria-selected="false">Top</button>
+      <button class="lane-tab" data-lane="jungle" role="tab" aria-selected="false">Jungle</button>
+      <button class="lane-tab" data-lane="middle" role="tab" aria-selected="false">Middle</button>
+      <button class="lane-tab" data-lane="bottom" role="tab" aria-selected="false">Bottom</button>
+      <button class="lane-tab" data-lane="support" role="tab" aria-selected="false">Support</button>
     </nav>
     <div class="status" id="status"></div>
   </header>
 
   <div class="data-notice" id="data-notice" role="status" hidden></div>
+
+  <!-- Hero / intro -->
+  <section class="hero">
+    <p class="hero-lead">
+      Find the holes in your champion pool. Pick a lane and the champions you play —
+      see which meta picks beat you, who to add, who to cut, and what's safe to
+      blind-pick. Data from the live patch.
+    </p>
+    <details class="methodology">
+      <summary>How the numbers work</summary>
+      <div class="methodology-body">
+        <p>
+          Everything is built from one number per matchup: <strong>Δ2</strong> — a
+          champion's win-rate delta in a specific matchup. Positive means that champion
+          is favored; negative means they're behind. It comes from aggregated match data
+          for the current patch (and a few recent ones, weighted toward the newest).
+        </p>
+        <p>
+          We compare your pool against the lane's <em>counter pool</em>: every champion
+          played often enough to matter (above your Min&nbsp;PR%&nbsp;threshold), minus
+          anything you've banned and minus your own picks.
+        </p>
+        <ul>
+          <li>
+            <strong>Eff Δ2</strong> — your pool's <em>best available answer</em> to a
+            given counter. For each threat we take the highest Δ2 across your pool, and
+            if your best answer is a champion you've marked as a <em>main</em>, it gets a
+            <strong>+1 buffer</strong> (you play it better than the average sample). Higher
+            is better; a negative Eff&nbsp;Δ2 means even your best pick loses that matchup.
+          </li>
+          <li>
+            <strong>Best-adds score</strong> — for a champion you <em>don't</em> own, how
+            much coverage they'd add. Each threat they'd newly answer is weighted by how
+            common that threat is (its pickrate), so beating popular meta picks counts for
+            more. Higher = a bigger upgrade to your pool.
+          </li>
+          <li>
+            <strong>Cut "unique value"</strong> — how much coverage you'd <em>lose</em> by
+            dropping a pool member: the threats only they answer, weighted by pickrate.
+            A low number means someone else has those matchups covered — safe to cut.
+          </li>
+          <li>
+            <strong>Blind score</strong> — the risk of locking a champion in before seeing
+            the enemy. It sums up every matchup that champion <em>loses</em>, each weighted
+            by how often you'd run into it. It's a negative number; <em>less</em> negative
+            (closer to zero) is safer to blind.
+          </li>
+          <li>
+            <strong>Usage %</strong> — roughly how often you'd actually play each champion.
+            We assume you blind-pick your safest champion on blind games and your best
+            counter on counter-pick games, then split by your <em>blind-pick rate</em>.
+          </li>
+        </ul>
+        <p class="methodology-note">
+          Δ2 is from the champion's own perspective. Match data is sampled, so treat small
+          differences as noise — the sliders let you raise the pickrate and sample-size
+          thresholds to filter out thin data.
+        </p>
+      </div>
+    </details>
+  </section>
 
   <main class="grid">
     <!-- Pool builder -->
@@ -32,7 +112,14 @@
           <ul class="search-results" id="pool-results" role="listbox"></ul>
         </div>
       </div>
-      <p class="hint">Click a chip to remove. Toggle <em>Main</em> in Settings for the +1 buffer.</p>
+      <div class="pool-cta" id="pool-cta" hidden>
+        <p>Start by adding the champions you play in this lane, then mark your mains in Settings. The analysis below updates as you build the pool.</p>
+        <button type="button" class="btn btn-primary" id="load-example">Load example pool</button>
+      </div>
+      <div class="pool-actions">
+        <p class="hint">Click a chip to remove. Toggle <em>Main</em> in Settings for the +1 buffer.</p>
+        <button type="button" class="btn btn-subtle" id="clear-pool" hidden>Clear pool</button>
+      </div>
     </section>
 
     <!-- Settings -->
@@ -74,18 +161,21 @@
     <!-- Worst matchups -->
     <section class="panel wide" id="worst-panel">
       <h2>Worst pool matchups</h2>
+      <p class="panel-desc">Meta picks your pool handles worst, ranked by your best available answer.</p>
       <div class="scroll-x"><table class="results-table" id="worst-table"></table></div>
     </section>
 
     <!-- Best adds -->
     <section class="panel wide" id="adds-panel">
       <h2>Best adds</h2>
+      <p class="panel-desc">Champions that would most improve your coverage if you learned them.</p>
       <div class="scroll-x"><table class="results-table" id="adds-table"></table></div>
     </section>
 
     <!-- Cut analysis -->
     <section class="panel" id="cut-panel">
       <h2>Cut analysis</h2>
+      <p class="panel-desc">How much each pool member uniquely contributes — the lowest is safest to drop.</p>
       <div class="scroll-x"><table class="results-table" id="cut-table"></table></div>
       <p class="hint" id="cut-hint"></p>
     </section>
@@ -93,15 +183,29 @@
     <!-- Blind safety -->
     <section class="panel" id="blind-panel">
       <h2>Blind safety</h2>
+      <p class="panel-desc">How risky each champ is to lock in before seeing the enemy.</p>
       <div class="scroll-x"><table class="results-table" id="blind-table"></table></div>
     </section>
 
     <!-- Usage simulation -->
     <section class="panel wide" id="usage-panel">
       <h2>Usage simulation</h2>
+      <p class="panel-desc">Roughly how often you'd play each champ across blind and counter picks.</p>
       <div id="usage-bars" class="usage-bars"></div>
     </section>
   </main>
+
+  <footer class="site-footer">
+    <p class="footer-freshness" id="footer-freshness"></p>
+    <p class="footer-links">
+      <span>Match data from <a href="https://lolalytics.com" target="_blank" rel="noopener noreferrer">lolalytics.com</a>. Champion images via Riot Data Dragon.</span>
+      <span class="footer-sep" aria-hidden="true">·</span>
+      <a href="https://github.com/shizukaziye/lol-pool-coverage" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </p>
+    <p class="footer-legal">
+      LoL Pool Coverage isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
+    </p>
+  </footer>
 
   <script type="module" src="app.js"></script>
 </body>

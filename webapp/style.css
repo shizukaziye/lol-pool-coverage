@@ -343,3 +343,150 @@ body { min-height: 100vh; }
 .empty-state.no-data { font-style: normal; }
 .empty-state.no-data strong { color: var(--warn); font-style: normal; }
 td.empty-state { white-space: normal; }
+
+/* ----- Hero / intro ----- */
+.hero {
+  max-width: var(--maxw);
+  margin: 1.2em auto 0;
+  padding: 0 1.2em;
+}
+.hero-lead {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.02em;
+  line-height: 1.55;
+  max-width: 70ch;
+}
+.hero-lead strong { color: var(--text); }
+
+/* ----- Methodology <details> ----- */
+.methodology {
+  margin-top: 0.9em;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.9em;
+}
+.methodology > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.65em 1em;
+  color: var(--accent);
+  font-weight: 500;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.methodology > summary::-webkit-details-marker { display: none; }
+.methodology > summary::before {
+  content: "▸";
+  font-size: 0.85em;
+  color: var(--text-dim);
+  transition: transform 0.15s;
+}
+.methodology[open] > summary::before { transform: rotate(90deg); }
+.methodology > summary:hover { color: var(--accent-2); }
+.methodology > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: var(--radius); }
+.methodology-body {
+  padding: 0.2em 1.2em 1em;
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+.methodology-body p { margin: 0.8em 0; max-width: 80ch; }
+.methodology-body strong { color: var(--text); }
+.methodology-body em { color: var(--text); font-style: normal; }
+.methodology-body ul { margin: 0.8em 0; padding-left: 1.2em; max-width: 80ch; }
+.methodology-body li { margin: 0.55em 0; }
+.methodology-note { font-size: 0.95em; opacity: 0.92; }
+
+/* ----- Panel descriptions ----- */
+.panel-desc {
+  margin: -0.4em 0 0.9em 0;
+  color: var(--text-dim);
+  font-size: 0.85em;
+  line-height: 1.45;
+}
+
+/* ----- Buttons ----- */
+.btn {
+  font: inherit;
+  font-size: 0.85em;
+  border-radius: var(--radius);
+  padding: 0.45em 0.9em;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-elev2);
+  color: var(--text);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--row-hover); border-color: var(--accent); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
+.btn-subtle { background: transparent; color: var(--text-dim); }
+.btn-subtle:hover { color: var(--text); border-color: var(--bad); background: var(--bg-elev2); }
+
+/* ----- Pool CTA + actions ----- */
+.pool-cta {
+  margin-top: 0.5em;
+  padding: 0.9em 1em;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elev2);
+}
+.pool-cta[hidden] { display: none; }
+.pool-cta p {
+  margin: 0 0 0.7em 0;
+  color: var(--text-dim);
+  font-size: 0.88em;
+  line-height: 1.5;
+}
+.pool-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8em;
+  flex-wrap: wrap;
+}
+.pool-actions .hint { flex: 1 1 auto; }
+.pool-actions .btn[hidden] { display: none; }
+
+/* ----- Footer ----- */
+.site-footer {
+  max-width: var(--maxw);
+  margin: 0.5em auto 2.4em;
+  padding: 1.3em 1.2em 0;
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.82em;
+  line-height: 1.55;
+}
+.site-footer p { margin: 0.55em 0; }
+.site-footer a { color: var(--accent); text-decoration: none; }
+.site-footer a:hover { text-decoration: underline; }
+.footer-freshness {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.footer-freshness:empty { display: none; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 0.4em 0.6em; align-items: baseline; }
+.footer-sep { color: var(--border); }
+.footer-legal {
+  font-size: 0.92em;
+  opacity: 0.8;
+  max-width: 100ch;
+  margin-top: 0.8em;
+}
+
+@media (max-width: 900px) {
+  .hero { margin-left: 1em; margin-right: 1em; padding: 0; }
+  .site-footer { margin-left: 1em; margin-right: 1em; }
+}
+@media (max-width: 520px) {
+  .hero { margin-left: 0.8em; margin-right: 0.8em; }
+  .site-footer { margin-left: 0.8em; margin-right: 0.8em; }
+  .hero-lead { font-size: 0.98em; }
+}
