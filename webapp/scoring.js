@@ -264,6 +264,46 @@ export function blindScores(data, opts) {
 }
 
 /**
+ * 4b. Best blind picks — the safest first-picks in the LANE that you don't
+ * already play, so you can find one to add. Same blind metric as blindScores
+ * but computed for every champion in the counter pool (PR ≥ minPr, not banned,
+ * not in your pool), ranked safest (least-negative) first.
+ *
+ * Returns array { champ, blind, blindWeighted, pr, lossCount } sorted desc.
+ */
+export function blindCandidates(data, opts) {
+  const cp = counterPool(data, opts); // PR≥minPr champs, minus banned, minus pool
+  const out = [];
+  for (const champ of cp) {
+    let blind = 0;
+    let num = 0;
+    let den = 0;
+    let lossCount = 0;
+    let dataCount = 0;
+    for (const c of cp) {
+      if (c === champ) continue;
+      const raw = d2(data, champ, c);
+      if (raw === null) continue;
+      const prc = pr(data, c);
+      dataCount++;
+      if (raw < 0) { blind += raw * prc; lossCount++; }
+      num += raw * prc;
+      den += prc;
+    }
+    if (dataCount === 0) continue;
+    out.push({
+      champ,
+      blind,
+      blindWeighted: den > 0 ? num / den : 0,
+      pr: pr(data, champ),
+      lossCount,
+    });
+  }
+  out.sort((a, b) => b.blind - a.blind);
+  return out;
+}
+
+/**
  * 5. Usage simulation.
  *
  *   best_blind = argmax over P of blind(P)

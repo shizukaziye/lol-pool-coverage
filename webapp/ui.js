@@ -2,7 +2,7 @@
 
 import {
   worstMatchups, candidateScores, cutAnalysis,
-  blindScores, usageSimulation, draftPicks,
+  blindScores, blindCandidates, usageSimulation, draftPicks,
 } from "./scoring.js";
 
 const fmt = (x, d = 2) => (x == null ? "—" : Number(x).toFixed(d));
@@ -228,6 +228,28 @@ export function renderBlind(table, data, opts, ctx) {
   }
   html += `</tbody>`;
   table.innerHTML = html;
+}
+
+// Best blind picks in the lane you don't play yet — click one to add it.
+export function renderBlindPicks(table, data, opts, ctx, onAdd) {
+  const rows = blindCandidates(data, opts).slice(0, 20);
+  if (rows.length === 0) {
+    table.innerHTML = `<tbody><tr><td class="empty-state">No data for this lane yet.</td></tr></tbody>`;
+    return;
+  }
+  let html = `<thead><tr><th title="A safe first-pick in this lane you don't currently play. Click one to add it to your pool.">Blind pick</th><th class="num" title="How often this champion is played in this lane.">PR%</th><th class="num" title="Average Δ2 across the meta, weighted by pickrate. Positive = favored into the field overall.">Avg Δ2</th><th class="num" title="Blind score — sum of this champ's losing matchups weighted by how common they are. Less negative (closer to 0) = safer to blind.">Blind</th></tr></thead><tbody>`;
+  for (const r of rows) {
+    const meta = ctx.champByRiotId(r.champ);
+    const cname = meta ? meta.name : r.champ;
+    html += `<tr><td><button type="button" class="add-cand" data-add="${r.champ}" title="Add ${escapeHtml(cname)} to your pool">${champCell(r.champ, ctx)}<span class="add-plus" aria-hidden="true">+</span></button></td><td class="num">${fmt(r.pr, 2)}</td>${d2Cell(r.blindWeighted)}${d2Cell(r.blind)}</tr>`;
+  }
+  html += `</tbody>`;
+  table.innerHTML = html;
+  if (onAdd) {
+    table.querySelectorAll(".add-cand").forEach((btn) => {
+      btn.addEventListener("click", () => onAdd(btn.dataset.add));
+    });
+  }
 }
 
 export function renderUsage(container, data, opts, ctx) {
