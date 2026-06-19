@@ -11,7 +11,25 @@ export const DEFAULTS = Object.freeze({
   BLIND_RATE: 0.40,
   MIN_PR: 1.5,
   MIN_GAMES: 100,
+  // A champion is only SUGGESTED (best adds / best blind picks) if it's a common
+  // pick with plenty of data — guards against thin-sample champs (e.g. Skarner at
+  // <1% PR) whose matchups read a noisy ±10. The user's own pool champs bypass
+  // this entirely; they're never auto-suggested. PR is the primary filter
+  // (≥MIN_PR champs all carry 100k+ games); the games floor is a backstop for
+  // when MIN_PR is dragged low.
+  MIN_CAND_GAMES: 20000,
 });
+
+/**
+ * Is `id` eligible to be SUGGESTED to the user (best adds / best blind picks)?
+ * Requires a common pick (PR ≥ minPr) with plenty of data (games_total floor).
+ * Does NOT apply to champions the user explicitly put in their pool.
+ */
+export function isSuggestable(data, id, { minPr = DEFAULTS.MIN_PR } = {}) {
+  const t = data.tierlist[id];
+  if (!t) return false;
+  return (t.pr ?? 0) >= minPr && (t.games_total ?? 0) >= DEFAULTS.MIN_CAND_GAMES;
+}
 
 /**
  * d2 lookup: weighted.matchups[subject][role][opponent].d2, or null if missing.
@@ -185,10 +203,12 @@ export function candidateScores(data, opts, rosters = null) {
   // Precompute pool_d2 for every threat (role-aware).
   const poolByThreat = threats.map((t) => ({ t, poolVal: poolD2(data, t.id, opts, t.role).value }));
 
-  // Candidate set: every champion in YOUR lane's tierlist that's not in POOL.
+  // Candidate set: champs in YOUR lane that you don't play, restricted to
+  // common, well-sampled picks (no thin-data noise like Skarner). Your own pool
+  // champs are excluded here anyway — they're never auto-suggested.
   const cands = [];
   for (const id of Object.keys(data.tierlist)) {
-    if (!poolSet.has(id)) cands.push(id);
+    if (!poolSet.has(id) && isSuggestable(data, id, opts)) cands.push(id);
   }
 
   const out = [];
@@ -338,7 +358,8 @@ export function blindScores(data, opts, rosters = null) {
  * Returns array { champ, blind, blindWeighted, pr, lossCount } sorted desc.
  */
 export function blindCandidates(data, opts, rosters = null) {
-  const cands = counterPool(data, opts); // your-lane champs not in pool/banned
+  // Only suggest common, well-sampled first-picks (no thin-data noise).
+  const cands = counterPool(data, opts).filter((id) => isSuggestable(data, id, opts));
   const threats = threatPool(data, rosters, opts);
   const out = [];
   for (const champ of cands) {
