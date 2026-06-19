@@ -118,11 +118,11 @@ export function renderWorst(table, data, opts, ctx) {
     return;
   }
   const pool = opts.pool;
-  let html = `<thead><tr><th title="A popular meta pick in this lane that you draft against.">Counter</th><th class="num" title="Pickrate: how often this champion is played in this lane.">PR%</th><th title="Effective Δ2 — your pool's best answer to this counter, with the +1 buffer applied if that answer is a main. Higher is better.">Eff Δ2</th><th title="Which pool member gives that best answer.">By</th>`;
+  let html = `<thead><tr><th title="A popular meta pick in this lane that you draft against.">Counter</th><th class="num" title="Pickrate: how often this champion is played in this lane.">PR%</th><th title="Your best answer in the pool to this threat (mains get the +1 buffer). The Δ2 columns show each champ's matchup.">Best answer</th>`;
   for (const p of pool) html += `<th>${champCell(p, ctx)}</th>`;
   html += `</tr></thead><tbody>`;
   for (const r of rows) {
-    html += `<tr><td>${champCell(r.counter, ctx)}</td><td class="num">${fmt(r.pr, 2)}</td>${d2Cell(r.value)}<td>${r.by ? champCell(r.by, ctx) : "—"}</td>`;
+    html += `<tr><td>${champCell(r.counter, ctx)}</td><td class="num">${fmt(r.pr, 2)}</td><td>${r.by ? champCell(r.by, ctx) : "—"}</td>`;
     const byMap = new Map(r.breakdown.map((b) => [b.p, b]));
     for (const p of pool) {
       const b = byMap.get(p);
