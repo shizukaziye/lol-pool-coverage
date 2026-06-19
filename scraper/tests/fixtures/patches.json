@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "current_patch": "15.11",
+  "patches": [
+    { "patch": "15.11", "scraped_at": "2026-06-19T08:00:00Z", "is_final": false, "k_back": 0 },
+    { "patch": "15.10", "scraped_at": "2026-06-12T08:00:00Z", "is_final": true,  "k_back": 1 }
+  ]
+}

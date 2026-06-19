@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "patch": "15.11",
+  "lane": "top",
+  "scraped_at": "2026-06-19T08:00:00Z",
+  "tierlist": {
+    "266": { "pr": 5.95, "wr": 51.0, "rank": 1, "tier": 5, "games": 100000 },
+    "86":  { "pr": 4.00, "wr": 49.0, "rank": 2, "tier": 4, "games": 80000 }
+  },
+  "matchups": {
+    "266": {
+      "86": { "d2": -0.40, "games": 1000 }
+    }
+  }
+}

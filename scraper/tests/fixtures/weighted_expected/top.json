@@ -1,0 +1,40 @@
+{
+  "comment": "Hand-computed expected weighted output for the 2-patch, 2-champion, 1-matchup fixture. PR and WR use lane_games_total_k weighting (sum of all champions' games in that lane on that patch), so every champion in a snapshot is weighted by the same lane-level number — per the formula in docs/DATA_FORMAT.md. The matchup d2 uses per-pair games. WEIGHT_BASE=0.9.",
+  "lane": "top",
+  "source_patches": ["15.11", "15.10"],
+  "_lane_totals": {
+    "15.11": 180000,
+    "15.10": 210000,
+    "denom_after_weight": 369000
+  },
+  "tierlist": {
+    "266": {
+      "_calc_pr": "(5.95*180000*1.0 + 6.05*210000*0.9) / (180000 + 189000) = (1071000 + 1143450) / 369000 = 2214450/369000",
+      "pr_unrounded": 6.001219512195122,
+      "pr": 6.0012,
+      "_calc_wr": "(51.0*180000 + 51.5*189000) / 369000 = (9180000 + 9733500)/369000 = 18913500/369000",
+      "wr_unrounded": 51.256097560975606,
+      "wr": 51.2561,
+      "games_total": 220000
+    },
+    "86": {
+      "_calc_pr": "(4.00*180000*1.0 + 3.80*210000*0.9) / 369000 = (720000 + 718200) / 369000 = 1438200/369000",
+      "pr_unrounded": 3.897560975609756,
+      "pr": 3.8976,
+      "_calc_wr": "(49.0*180000 + 48.5*189000) / 369000 = (8820000 + 9166500)/369000 = 17986500/369000",
+      "wr_unrounded": 48.74390243902439,
+      "wr": 48.7439,
+      "games_total": 170000
+    }
+  },
+  "matchups": {
+    "266": {
+      "86": {
+        "_calc": "(-0.40*1000*1.0 + -0.60*1200*0.9) / (1000*1.0 + 1200*0.9) = (-400 + -648)/2080 = -1048/2080",
+        "d2_unrounded": -0.5038461538461538,
+        "d2": -0.5038,
+        "games_total": 2200
+      }
+    }
+  }
+}
