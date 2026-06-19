@@ -11,7 +11,7 @@ These are the analyses the webapp surfaces. The same formulas should be implemen
 - `BLIND_RATE`: fraction of games the user blind-picks (default 0.40).
 - `BUF`: buffer magnitude for mains (default 1.0).
 - `MIN_GAMES`: sample-size threshold for candidate matchups (default 100, on the weighted `games_total`).
-- `COUNTER_POOL`: derived — all champions with PR ≥ 1.5% in this lane, minus `BANNED`.
+- `COUNTER_POOL`: derived — all champions with PR ≥ 1.5% in this lane, minus `BANNED`, minus `POOL` (pool members are not threats you draft against — mirror cases are handled separately via cut/usage analysis).
 
 ## Helper: effective pool Δ2 vs a counter
 

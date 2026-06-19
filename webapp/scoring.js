@@ -41,11 +41,12 @@ export function pr(data, champ) {
  * Derive the counter pool: champions in the lane with pr >= minPr, minus banned.
  * Returns an array of riot id strings.
  */
-export function counterPool(data, { minPr = DEFAULTS.MIN_PR, banned = [] } = {}) {
+export function counterPool(data, { minPr = DEFAULTS.MIN_PR, banned = [], pool = [] } = {}) {
   const bannedSet = new Set(banned.map(String));
+  const poolSet = new Set(pool.map(String));
   const out = [];
   for (const [id, info] of Object.entries(data.tierlist)) {
-    if (bannedSet.has(id)) continue;
+    if (bannedSet.has(id) || poolSet.has(id)) continue;
     if ((info.pr ?? 0) >= minPr) out.push(id);
   }
   return out;
