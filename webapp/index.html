@@ -103,6 +103,16 @@
             We assume you blind-pick your safest champion on blind games and your best
             counter on counter-pick games, then split by your <em>blind-pick rate</em>.
           </li>
+          <li>
+            <strong>Cross-role &amp; the comp simulation</strong> — League is 5v5, so you can
+            add an enemy role (e.g. jungle) and its meta picks join the threat lists.
+            <em>Best adds</em> then becomes a pickrate-weighted simulation of every enemy comp:
+            it combines each champ's matchups across the roles by <em>multiplying the odds</em>
+            (so good-vs-their-top but bad-vs-their-jungle nets out — e.g. Malphite into
+            Yasuo&nbsp;top + Sylas&nbsp;jungle) and ranks adds by how much they raise your
+            best-pick win rate, counting only the comps where they'd actually be your pick.
+            The draft assistant uses the same combine across up to five named enemies.
+          </li>
         </ul>
         <p class="methodology-note">
           Δ2 is from the champion's own perspective. Match data is sampled, so treat small
@@ -194,8 +204,8 @@
 
     <!-- Best adds -->
     <section class="panel wide" id="adds-panel">
-      <h2>Best adds</h2>
-      <p class="panel-desc">Champions that would most improve your coverage if you learned them.</p>
+      <h2 id="adds-title">Best adds</h2>
+      <p class="panel-desc" id="adds-desc">Champions that would most improve your coverage if you learned them.</p>
       <div class="scroll-x"><table class="results-table" id="adds-table"></table></div>
     </section>
 

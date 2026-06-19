@@ -701,6 +701,11 @@ td.empty-state { white-space: normal; }
   padding: 1px 4px; border-radius: 4px; margin-left: 3px; background: var(--accent-2); color: #fff;
 }
 
+/* "Shines vs" enemy comp in the simulated best-adds table */
+.combo-comp { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.combo-foe { display: inline-flex; align-items: center; }
+.combo-plus { color: var(--text-dim); margin: 0 1px; font-weight: 700; }
+
 @media (max-width: 900px) {
   .draft-cols { grid-template-columns: 1fr; }
   .draft-reco { position: static; }

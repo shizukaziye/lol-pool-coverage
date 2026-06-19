@@ -1,7 +1,7 @@
 // ui.js — DOM rendering for panels, tables, chips, charts.
 
 import {
-  worstMatchups, candidateScores, cutAnalysis,
+  worstMatchups, candidateScores, comboAdds, cutAnalysis,
   blindScores, blindCandidates, usageSimulation, draftPicks,
 } from "./scoring.js";
 
@@ -183,6 +183,45 @@ export function renderAdds(table, data, opts, ctx, onAdd, rosters = null) {
       btn.addEventListener("click", () => onAdd(btn.dataset.add));
     });
   }
+}
+
+// Combination-aware best adds: simulate the enemy comp across the roles in play
+// and rank candidates by marginal win added. Returns the comboAdds() summary so
+// the caller can update the panel heading. Click a candidate to add it.
+export function renderComboAdds(table, data, opts, ctx, onAdd, rosters = null) {
+  const res = comboAdds(data, opts, rosters);
+  if (res.rows.length === 0) {
+    table.innerHTML = `<tbody><tr><td class="empty-state">Add some pool champions to simulate the best adds against the field.</td></tr></tbody>`;
+    return res;
+  }
+  const rows = res.rows.slice(0, 25);
+  let html = `<thead><tr>` +
+    `<th title="A champion you don't play. Click one to add it to your pool.">Candidate</th>` +
+    `<th class="num" title="How much this champ raises your pool's expected best-response win rate, averaged over the simulated field of enemy comps — counting only comps where it would actually be your pick. In Δ2 points (≈ win% gain).">Win added</th>` +
+    `<th class="num" title="Share of the simulated field of enemy comps where this champ would be your best pick (an upgrade over your current pool).">Upgrades</th>` +
+    `<th title="The enemy comp this champion helps you most against.">Shines vs</th>` +
+    `</tr></thead><tbody>`;
+  for (const r of rows) {
+    const meta = ctx.champByRiotId(r.cand);
+    const cname = meta ? meta.name : r.cand;
+    const compCells = r.bestComp
+      ? res.roles.map((role) => `<span class="combo-foe">${champCell(r.bestComp[role], ctx)}${roleBadge(role, data.lane)}</span>`).join(`<span class="combo-plus" aria-hidden="true">+</span>`)
+      : "—";
+    html += `<tr>` +
+      `<td><button type="button" class="add-cand" data-add="${r.cand}" title="Add ${escapeHtml(cname)} to your pool">${champCell(r.cand, ctx)}<span class="add-plus" aria-hidden="true">+</span></button></td>` +
+      `<td class="d2-cell d2-pos cell-pos">+${fmt(r.addValue, 2)}</td>` +
+      `<td class="num">${Math.round(r.upgradeShare * 100)}%</td>` +
+      `<td><div class="combo-comp">${compCells}</div></td>` +
+      `</tr>`;
+  }
+  html += `</tbody>`;
+  table.innerHTML = html;
+  if (onAdd) {
+    table.querySelectorAll(".add-cand").forEach((btn) => {
+      btn.addEventListener("click", () => onAdd(btn.dataset.add));
+    });
+  }
+  return res;
 }
 
 export function renderCut(table, hint, data, opts, ctx, rosters = null) {

@@ -19,7 +19,7 @@
 import {
   poolD2, worstMatchups, candidateScores, cutAnalysis,
   blindScores, usageSimulation, counterPool, DEFAULTS,
-  combineDeltas, draftPicks, threatPool,
+  combineDeltas, draftPicks, threatPool, comboAdds, isSuggestable,
 } from "../scoring.js";
 
 const out = document.getElementById("out");
@@ -149,6 +149,19 @@ assertEq("worst jungle value", jungleRow.value, 1.0);
 assertEq("worst jungle by", jungleRow.by, "86");
 // With no extraRoles, threat pool == same-lane counter pool
 assertEq("threatPool no-extra == counterPool", threatPool(data, null, opts).map((t) => t.id).sort(), ["17", "67"]);
+
+// ---- Suggestion quality gate ----
+assertEq("isSuggestable common+sampled champ", isSuggestable(data, "266", opts), true);
+
+// ---- Combination-aware best adds (pickrate simulation) ----
+const rosters = { jungle: { "64": 5.0 } };
+const ca = comboAdds(data, { ...opts, extraRoles: ["jungle"] }, rosters);
+assertEq("comboAdds exact enumeration", ca.exact, true);
+assertEq("comboAdds comps = top×jungle", ca.comps, 4);
+assertEq("comboAdds roles", ca.roles, ["top", "jungle"]);
+assertEq("comboAdds candidates not in pool", ca.rows.every((r) => !["266", "86"].includes(r.cand)), true);
+assertEq("comboAdds sorted by addValue", ca.rows.every((r, i) => i === 0 || ca.rows[i - 1].addValue >= r.addValue), true);
+assertEq("comboAdds deterministic", JSON.stringify(comboAdds(data, { ...opts, extraRoles: ["jungle"] }, rosters).rows), JSON.stringify(ca.rows));
 
 // ---- Summary ----
 log("", "info");

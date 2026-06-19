@@ -250,6 +250,132 @@ export function candidateScores(data, opts, rosters = null) {
 }
 
 /**
+ * 2b. Combination-aware best adds (the "Monte Carlo over pickrate" model).
+ *
+ * Instead of scoring threats one at a time, simulate the actual enemy COMP. For
+ * the roles in play (your lane + any opted-in extra roles), draw the enemy in
+ * each role from its pickrate distribution; your value vs that comp is the
+ * log-odds combine across roles (so a champ great vs the enemy top but awful vs
+ * their jungler nets out — e.g. Malphite into Yasuo-top + Sylas-jungle). For
+ * each comp your best response is max over the pool; a candidate's ADD VALUE is
+ * how much it raises that best-response, averaged over the field.
+ *
+ * The comp space is enumerated exactly (pickrate-weighted) when small — the
+ * deterministic limit of Monte Carlo — and seeded-sampled when too large.
+ *
+ * Returns { rows: [{ cand, addValue, upgradeShare, bestComp }], baseExpected,
+ *           roles, comps, exact }. addValue/baseExpected are effective Δ2 points
+ * (win% − 50); upgradeShare is the fraction of the field the candidate upgrades.
+ */
+export function comboAdds(data, opts, rosters = null) {
+  const {
+    pool = [], mains = [], buf = DEFAULTS.BUF, minPr = DEFAULTS.MIN_PR,
+    minGames = DEFAULTS.MIN_GAMES, extraRoles = [], maxComps = 40000, samples = 8000,
+  } = opts;
+  const lane = data.lane;
+  const roles = [lane, ...extraRoles.filter((r) => r !== lane && rosters && rosters[r])];
+  const mainSet = new Set(mains.map(String));
+  const poolArr = pool.map(String);
+
+  // PR-weighted enemy distribution per role, over common picks (PR ≥ minPr).
+  const dist = {};
+  for (const role of roles) {
+    const src = role === lane ? data.tierlist : rosters[role];
+    const ids = [];
+    const probs = [];
+    let sum = 0;
+    for (const [id, info] of Object.entries(src || {})) {
+      const p = role === lane ? (info && info.pr) || 0 : info || 0;
+      if (p >= minPr) { ids.push(id); probs.push(p); sum += p; }
+    }
+    for (let i = 0; i < probs.length; i++) probs[i] /= sum || 1;
+    dist[role] = { ids, probs };
+  }
+
+  // Candidates: common, well-sampled champs you don't already play.
+  const cands = [];
+  for (const id of Object.keys(data.tierlist)) {
+    if (!poolArr.includes(id) && isSuggestable(data, id, opts)) cands.push(id);
+  }
+
+  // A champ's combined effective Δ2 vs a comp (role -> enemy id).
+  const effOf = (champ, comp) => {
+    const deltas = [];
+    for (const role of roles) {
+      const e = comp[role];
+      const dv = d2(data, champ, e, role);
+      if (dv === null || games(data, champ, e, role) < minGames) continue;
+      deltas.push(dv);
+    }
+    if (deltas.length === 0) return null;
+    if (mainSet.has(champ)) deltas.push(buf);
+    return combineDeltas(deltas).eff;
+  };
+
+  const addVal = new Map(cands.map((c) => [c, 0]));
+  const upgradeW = new Map(cands.map((c) => [c, 0]));
+  const bestComp = new Map();
+  let baseExpected = 0;
+
+  const evalComp = (comp, weight) => {
+    let bestBase = -Infinity;
+    for (const P of poolArr) {
+      const e = effOf(P, comp);
+      if (e !== null && e > bestBase) bestBase = e;
+    }
+    const baseVal = bestBase === -Infinity ? 0 : bestBase;
+    baseExpected += weight * baseVal;
+    for (const C of cands) {
+      const e = effOf(C, comp);
+      if (e === null) continue;
+      const gain = e - baseVal;
+      if (gain > 0) {
+        addVal.set(C, addVal.get(C) + weight * gain);
+        upgradeW.set(C, upgradeW.get(C) + weight);
+        const bc = bestComp.get(C);
+        if (!bc || gain > bc.gain) bestComp.set(C, { comp: { ...comp }, gain });
+      }
+    }
+  };
+
+  const total = roles.reduce((n, r) => n * dist[r].ids.length, 1);
+  const exact = total > 0 && total <= maxComps;
+  if (exact) {
+    // Exact pickrate-weighted enumeration over the cartesian product of comps.
+    const rec = (ri, comp, w) => {
+      if (ri === roles.length) { evalComp(comp, w); return; }
+      const d = dist[roles[ri]];
+      for (let i = 0; i < d.ids.length; i++) {
+        comp[roles[ri]] = d.ids[i];
+        rec(ri + 1, comp, w * d.probs[i]);
+      }
+    };
+    rec(0, {}, 1);
+  } else {
+    // Seeded Monte Carlo for large comp spaces (deterministic → no flicker).
+    let seed = 1234567;
+    const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+    const draw = (role) => {
+      const d = dist[role]; const u = rnd(); let acc = 0;
+      for (let i = 0; i < d.ids.length; i++) { acc += d.probs[i]; if (u <= acc) return d.ids[i]; }
+      return d.ids[d.ids.length - 1];
+    };
+    for (let s = 0; s < samples; s++) {
+      const comp = {};
+      for (const role of roles) comp[role] = draw(role);
+      evalComp(comp, 1 / samples);
+    }
+  }
+
+  const rows = cands
+    .map((c) => ({ cand: c, addValue: addVal.get(c), upgradeShare: upgradeW.get(c), bestComp: (bestComp.get(c) || {}).comp || null }))
+    .filter((r) => r.addValue > 1e-6)
+    .sort((a, b) => b.addValue - a.addValue);
+
+  return { rows, baseExpected, roles, comps: exact ? total : samples, exact };
+}
+
+/**
  * 3. Cut analysis. For each P in POOL:
  *   unique(P) = sum over C in COUNTER_POOL of
  *                 pr(C) * max(0, current_best(C) - second_best_without_P(C))

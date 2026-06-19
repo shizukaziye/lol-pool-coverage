@@ -43,6 +43,8 @@ const els = {
 
   worstTable: document.getElementById("worst-table"),
   addsTable: document.getElementById("adds-table"),
+  addsTitle: document.getElementById("adds-title"),
+  addsDesc: document.getElementById("adds-desc"),
   cutTable: document.getElementById("cut-table"),
   cutHint: document.getElementById("cut-hint"),
   blindTable: document.getElementById("blind-table"),
@@ -347,10 +349,26 @@ function renderAll() {
   renderXroleBar();
   const rb = rostersByRole();
   ui.renderWorst(els.worstTable, data, opts, c, rb);
-  ui.renderAdds(els.addsTable, data, opts, c, (id) => {
+  const onAddCand = (id) => {
     if (!state.pool.includes(String(id))) state.pool = [...state.pool, String(id)];
     persist(); renderAll();
-  }, rb);
+  };
+  // With an extra enemy role enabled, "Best adds" becomes a pickrate-weighted
+  // simulation over enemy comps (combinations matter); otherwise the standard
+  // coverage ranking.
+  if (state.extraRole && rb && rb[state.extraRole]) {
+    const res = ui.renderComboAdds(els.addsTable, data, opts, c, onAddCand, rb);
+    if (els.addsTitle) els.addsTitle.textContent = "Best adds — simulated vs the field";
+    if (els.addsDesc) {
+      const wr = (50 + (res?.baseExpected ?? 0)).toFixed(1);
+      const roleNames = (res?.roles || []).map((r) => ROLE_LABEL[r] || r).join(" + ");
+      els.addsDesc.innerHTML = `Over <strong>${(res?.comps ?? 0).toLocaleString()}</strong> pickrate-weighted enemy comps (${roleNames})${res && !res.exact ? " sampled" : ""}, ranked by how much each champ raises your best-pick win rate — counting only the comps where it'd actually be your pick. Your pool currently averages <strong>~${wr}%</strong> vs the field.`;
+    }
+  } else {
+    ui.renderAdds(els.addsTable, data, opts, c, onAddCand, rb);
+    if (els.addsTitle) els.addsTitle.textContent = "Best adds";
+    if (els.addsDesc) els.addsDesc.textContent = "Champions that would most improve your coverage if you learned them.";
+  }
   ui.renderCut(els.cutTable, els.cutHint, data, opts, c, rb);
   ui.renderBlind(els.blindTable, data, opts, c, rb);
   ui.renderBlindPicks(els.blindPicksTable, data, opts, c, (id) => {

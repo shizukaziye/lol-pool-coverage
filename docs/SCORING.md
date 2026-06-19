@@ -124,6 +124,33 @@ compound but saturate below 100% (`90% & 90% → 98.8%`), and because off-role �
 are naturally ~5× smaller than the lane, the lane dominates without any manual
 weighting. Pool members with no data vs any filled slot sort last.
 
+### Combination-aware best adds (pickrate simulation)
+
+When you opt a second role into **pool analysis**, "best adds" switches from the
+independent coverage sum to a simulation over enemy comps (`comboAdds`):
+
+```
+roles = [yourLane, ...extraRoles]
+for each enemy comp (one champ per role), weighted by the product of the
+champs' pickrates (restricted to PR ≥ minPr — common picks):
+    bestBase = max over P in POOL of comboEff(P, comp)        # your best response
+    for each candidate C (suggestable, not in pool):
+        gain = comboEff(C, comp) − bestBase
+        if gain > 0:
+            addValue[C]     += weight * gain
+            upgradeShare[C] += weight
+comboEff(champ, comp) = combineDeltas( d2(champ, comp[role], role) for role in roles
+                                       with games ≥ MIN_GAMES ; + buf if main )
+```
+
+`addValue` is the expected effective-Δ2 (≈ win%) a candidate adds to your pool,
+counting **only** the comps where it would actually be your pick — so a champ
+that's strong vs the enemy top but collapses vs a common enemy jungler (Malphite
+into Sylas) gets no credit in those comps. The comp space is enumerated exactly
+when small (≤ `maxComps`, the deterministic limit of Monte Carlo) and
+seeded-sampled otherwise. `baseExpected` is your pool's mean best-response Δ2
+across the field.
+
 ## Fixtures
 
 The scraper repo should include a tiny golden-data fixture (3 champions, 1 lane, hand-computed expected outputs) that both Python tests and JS tests can run against, to confirm both implementations agree numerically.
