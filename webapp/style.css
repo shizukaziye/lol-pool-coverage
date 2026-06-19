@@ -500,6 +500,27 @@ td.empty-state { white-space: normal; }
   font-variant-numeric: tabular-nums;
 }
 .footer-freshness:empty { display: none; }
+.patch-blend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4em 0.5em;
+  margin: 0.55em 0;
+  font-size: 0.92em;
+}
+.patch-blend-label { color: var(--text-dim); cursor: help; }
+.patch-blend-list { display: inline-flex; flex-wrap: wrap; gap: 0.4em; }
+.patch-chip {
+  background: var(--chip-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.1em 0.6em;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.patch-chip strong { color: var(--text); font-weight: 600; }
+.patch-chip:first-child { border-color: var(--accent); }
 .footer-links { display: flex; flex-wrap: wrap; gap: 0.4em 0.6em; align-items: baseline; }
 .footer-sep { color: var(--border); }
 .footer-legal {

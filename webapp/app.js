@@ -49,6 +49,8 @@ const els = {
   loadExample: document.getElementById("load-example"),
   clearPool: document.getElementById("clear-pool"),
   footerFreshness: document.getElementById("footer-freshness"),
+  patchBlend: document.getElementById("patch-blend"),
+  patchBlendList: document.getElementById("patch-blend-list"),
 };
 
 // ---------- DDragon ----------
@@ -120,6 +122,7 @@ if (!LANES.includes(lane)) lane = "top";
 let state = store.loadState(lane) || DEFAULT_STATE();
 let data = null;            // current weighted/{lane}.json
 let dataSource = "none";    // "weighted" | "fixture" | "none" — drives empty-state copy
+let patchesReg = null;      // parsed data/patches.json (patch registry w/ k_back)
 let champs = null;          // { by_riot_id, by_slug } (synthesized if no champions.json)
 
 function persist() { store.saveState(lane, state); }
@@ -243,6 +246,7 @@ function renderPoolControls() {
 function renderAll() {
   renderDataNotice();
   renderPoolControls();
+  renderPatchBlend();
   if (!data) {
     const msg = `<strong>No meta data yet.</strong> The weekly scrape hasn't run for this lane, and no fixture was found. Run the scraper to populate <code>data/weighted/${lane}.json</code>.`;
     for (const t of [els.worstTable, els.addsTable, els.cutTable, els.blindTable]) {
@@ -402,35 +406,59 @@ function attachSearches() {
   });
 }
 
-// ---------- Footer freshness (patch + data date) ----------
+// ---------- Patch registry, footer freshness, and patch blend ----------
 
-async function renderFooterFreshness() {
-  if (!els.footerFreshness) return;
+async function loadPatchesRegistry() {
   try {
-    const reg = await fetch("../data/patches.json").then((r) => {
+    patchesReg = await fetch("../data/patches.json").then((r) => {
       if (!r.ok) throw new Error(String(r.status));
       return r.json();
     });
-    const current = reg.current_patch;
-    const entry = Array.isArray(reg.patches)
-      ? reg.patches.find((p) => p.patch === current) || reg.patches[0]
-      : null;
-    const parts = [];
-    if (current) parts.push(`Patch ${current}`);
-    const iso = entry?.scraped_at;
-    if (iso) {
-      const d = new Date(iso);
-      if (!Number.isNaN(d.getTime())) {
-        // YYYY-MM-DD in the viewer's locale-independent ISO form.
-        parts.push(`data updated ${d.toISOString().slice(0, 10)}`);
-      }
-    }
-    els.footerFreshness.textContent = parts.join(" · ");
   } catch (e) {
-    // Degrade gracefully: leave the freshness line empty if absent/unreadable.
-    console.warn("patches.json freshness fetch failed", e);
-    els.footerFreshness.textContent = "";
+    console.warn("patches.json fetch failed", e);
+    patchesReg = null;
   }
+}
+
+function renderFooterFreshness() {
+  if (!els.footerFreshness) return;
+  const reg = patchesReg;
+  if (!reg) { els.footerFreshness.textContent = ""; return; }
+  const current = reg.current_patch;
+  const entry = Array.isArray(reg.patches)
+    ? reg.patches.find((p) => p.patch === current) || reg.patches[0]
+    : null;
+  const parts = [];
+  if (current) parts.push(`Patch ${current}`);
+  const iso = entry?.scraped_at;
+  if (iso) {
+    const d = new Date(iso);
+    if (!Number.isNaN(d.getTime())) parts.push(`data updated ${d.toISOString().slice(0, 10)}`);
+  }
+  els.footerFreshness.textContent = parts.join(" · ");
+}
+
+// Show which patches feed the current lane's blend and their 0.9^k weights.
+// `data.source_patches` lists the patches that actually had data for this lane;
+// k_back (and thus the weight) comes from the registry.
+function renderPatchBlend() {
+  if (!els.patchBlend || !els.patchBlendList) return;
+  const sources = (data && Array.isArray(data.source_patches)) ? data.source_patches : [];
+  if (sources.length === 0) { els.patchBlend.hidden = true; els.patchBlendList.innerHTML = ""; return; }
+  const kByPatch = new Map();
+  if (patchesReg && Array.isArray(patchesReg.patches)) {
+    for (const p of patchesReg.patches) kByPatch.set(p.patch, p.k_back ?? 0);
+  }
+  // Order by k_back ascending (newest first); fall back to source order.
+  const items = sources
+    .map((patch, i) => ({ patch, k: kByPatch.has(patch) ? kByPatch.get(patch) : i }))
+    .sort((a, b) => a.k - b.k)
+    .map(({ patch, k }) => {
+      const weightPct = Math.round(Math.pow(0.9, k) * 100);
+      return `<span class="patch-chip" title="${k === 0 ? "Current patch — full weight" : `${k} patch${k === 1 ? "" : "es"} old — weighted 0.9^${k}`}"><strong>${patch}</strong> ${weightPct}%</span>`;
+    });
+  els.patchBlendList.innerHTML = items.join("");
+  els.patchBlend.hidden = false;
 }
 
 // ---------- Boot ----------
@@ -440,6 +468,7 @@ async function renderFooterFreshness() {
   await fetchDDragonVersion();
   await fetchDDragonChampions();
   champs = await loadChampions();
+  await loadPatchesRegistry();
   data = await loadLaneData();
   if (data && !champs) champs = synthesizeChampions(data);
   // If we have lane data but champion meta is incomplete, fill from synthesizer.

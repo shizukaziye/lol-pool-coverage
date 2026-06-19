@@ -56,8 +56,16 @@
         <p>
           Everything is built from one number per matchup: <strong>Δ2</strong> — a
           champion's win-rate delta in a specific matchup. Positive means that champion
-          is favored; negative means they're behind. It comes from aggregated match data
-          for the current patch (and a few recent ones, weighted toward the newest).
+          is favored; negative means they're behind.
+        </p>
+        <p>
+          <strong>Patch weighting.</strong> Δ2 is blended across recent patches so the
+          numbers reflect the live meta without overreacting to one patch's noise. The
+          current patch counts at full strength; each older patch is discounted by a
+          further 10% — <strong>90%</strong> for last patch, <strong>81%</strong> for two
+          patches ago, <strong>73%</strong> for three, and so on (0.9 per step), out to 20
+          patches. The exact patches in today's blend and their weights are listed in the
+          footer and update each week as new data lands.
         </p>
         <p>
           We compare your pool against the lane's <em>counter pool</em>: every champion
@@ -206,6 +214,10 @@
 
   <footer class="site-footer">
     <p class="footer-freshness" id="footer-freshness"></p>
+    <div class="patch-blend" id="patch-blend" hidden>
+      <span class="patch-blend-label" title="Δ2 is blended across these patches. The current patch counts at 100%; each older patch is weighted 0.9× the one after it (90%, 81%, 73%…). See &quot;How the numbers work&quot;.">Patch blend:</span>
+      <span class="patch-blend-list" id="patch-blend-list"></span>
+    </div>
     <p class="footer-links">
       <span>Match data from <a href="https://lolalytics.com" target="_blank" rel="noopener noreferrer">lolalytics.com</a>. Champion images via Riot Data Dragon.</span>
       <span class="footer-sep" aria-hidden="true">·</span>
