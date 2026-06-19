@@ -112,7 +112,12 @@
     </details>
   </section>
 
-  <main class="grid">
+  <div class="mode-switch" role="tablist" aria-label="View mode">
+    <button class="mode-btn active" data-mode="analyze" role="tab" aria-selected="true">Pool analysis</button>
+    <button class="mode-btn" data-mode="draft" role="tab" aria-selected="false">Draft assistant</button>
+  </div>
+
+  <main class="grid" id="analyze-view">
     <!-- Pool builder -->
     <section class="panel" id="pool-panel">
       <h2>Your pool</h2>
@@ -211,6 +216,31 @@
       <div id="usage-bars" class="usage-bars"></div>
     </section>
   </main>
+
+  <!-- Draft assistant -->
+  <section class="draft-view" id="draft-view" hidden>
+    <div class="draft-empty" id="draft-empty" hidden>
+      <p>Add the champions you play to <strong>Your pool</strong> (in Pool analysis) first — then come back here and the draft assistant will tell you who to pick.</p>
+    </div>
+    <div class="draft-cols" id="draft-cols">
+      <!-- Recommendation column -->
+      <section class="draft-reco panel">
+        <h2 id="reco-title">Your blind pick</h2>
+        <p class="panel-desc" id="reco-desc"></p>
+        <div class="champ-grid reco-grid" id="reco-grid"></div>
+        <p class="draft-flag" id="draft-flag" hidden></p>
+      </section>
+      <!-- Enemy picker column -->
+      <section class="draft-enemy panel">
+        <h2>Enemy <span id="enemy-lane-label">top</span> laner</h2>
+        <div class="enemy-bar">
+          <input type="text" id="enemy-search" class="enemy-search" placeholder="Search the enemy champion…" autocomplete="off" />
+          <button type="button" class="btn btn-subtle" id="enemy-clear" hidden>Clear</button>
+        </div>
+        <div class="champ-grid enemy-grid" id="enemy-grid"></div>
+      </section>
+    </div>
+  </section>
 
   <footer class="site-footer">
     <p class="footer-freshness" id="footer-freshness"></p>

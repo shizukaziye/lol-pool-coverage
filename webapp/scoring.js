@@ -315,3 +315,47 @@ export function usageSimulation(data, opts) {
   out.sort((a, b) => b.usage - a.usage);
   return out;
 }
+
+/**
+ * 6. Draft pick — given a specific enemy laner, rank YOUR pool by the matchup.
+ *
+ *   For each pool member P: raw = d2(P, enemy) (your champ's Δ2 vs the enemy,
+ *   your perspective; positive = you're favored). eff adds the +1 main buffer
+ *   if P is a main. Sorted best-first; members with no matchup data sort last.
+ *
+ * Returns { rows: [{ p, raw, eff, isMain, games }], hasData, allLose, best }.
+ *   - hasData: at least one pool member has a Δ2 vs this enemy.
+ *   - allLose: every pool member with data has eff < 0.
+ *   - best: the top pool member id (your recommended pick), or null.
+ */
+export function draftPicks(data, opts, enemyId) {
+  const { pool = [], mains = [], buf = DEFAULTS.BUF, minGames = 0 } = opts;
+  const mainSet = new Set(mains.map(String));
+  const e = String(enemyId);
+  const rows = pool.map((p) => {
+    const raw = d2(data, p, e);
+    const g = games(data, p, e);
+    const usable = raw !== null && g >= minGames;
+    const isMain = mainSet.has(String(p));
+    return {
+      p,
+      raw: usable ? raw : null,
+      eff: usable ? raw + (isMain ? buf : 0) : null,
+      isMain,
+      games: g,
+    };
+  });
+  rows.sort((a, b) => {
+    if (a.eff === null && b.eff === null) return 0;
+    if (a.eff === null) return 1;
+    if (b.eff === null) return -1;
+    return b.eff - a.eff;
+  });
+  const withData = rows.filter((r) => r.eff !== null);
+  return {
+    rows,
+    hasData: withData.length > 0,
+    allLose: withData.length > 0 && withData.every((r) => r.eff < 0),
+    best: withData.length > 0 ? withData[0].p : null,
+  };
+}

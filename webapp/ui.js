@@ -2,7 +2,7 @@
 
 import {
   worstMatchups, candidateScores, cutAnalysis,
-  blindScores, usageSimulation,
+  blindScores, usageSimulation, draftPicks,
 } from "./scoring.js";
 
 const fmt = (x, d = 2) => (x == null ? "—" : Number(x).toFixed(d));
@@ -237,4 +237,95 @@ export function renderUsage(container, data, opts, ctx) {
       <div class="pct">${fmtPct(r.usage, 1)}</div>
     </div>`;
   }).join("");
+}
+
+// ---------------- Draft assistant (champ-select-style tiles) ----------------
+
+// One large square portrait + name caption, with optional Δ2 badge / ribbons.
+// o: { selected, best, nodata, isMain, tag: "best"|"blind", d2: number|null }
+export function champTile(id, ctx, o = {}) {
+  const meta = ctx.champByRiotId(id);
+  const name = meta ? meta.name : id;
+  const slug = meta ? meta.slug : null;
+  const url = slug ? ctx.iconUrl(slug) : "";
+  let cls = "champ-tile";
+  if (o.selected) cls += " selected";
+  if (o.best) cls += " best";
+  if (o.nodata) cls += " nodata";
+  let tag = "";
+  if (o.tag === "best") tag = `<span class="tile-tag best">Best pick</span>`;
+  else if (o.tag === "blind") tag = `<span class="tile-tag blind">Safest blind</span>`;
+  let d2badge = "";
+  if (Object.prototype.hasOwnProperty.call(o, "d2")) {
+    if (o.d2 == null) d2badge = `<span class="tile-d2 na">n/a</span>`;
+    else d2badge = `<span class="tile-d2 ${o.d2 >= 0 ? "pos" : "neg"}">${o.d2 >= 0 ? "+" : ""}${Number(o.d2).toFixed(2)}</span>`;
+  }
+  const star = o.isMain ? ` <span class="star" title="Main (+1 buffer)">★</span>` : "";
+  return `<div class="${cls}" data-id="${id}" role="button" tabindex="0" title="${escapeHtml(name)}">${tag}${d2badge}<img src="${url}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"/><span class="tile-name">${escapeHtml(name)}${star}</span></div>`;
+}
+
+export function renderEnemyGrid(container, laneChampIds, ctx, selectedId, filterText) {
+  const q = (filterText || "").trim().toLowerCase();
+  const items = laneChampIds.filter((id) => {
+    if (!q) return true;
+    const meta = ctx.champByRiotId(id);
+    return meta && meta.name.toLowerCase().includes(q);
+  });
+  if (items.length === 0) {
+    container.innerHTML = `<p class="reco-empty">No champion matches “${escapeHtml(filterText)}”.</p>`;
+    return;
+  }
+  container.innerHTML = items.map((id) => champTile(id, ctx, { selected: String(id) === String(selectedId) })).join("");
+}
+
+// Render the recommendation column. If enemyId is set → rank pool vs that enemy;
+// otherwise → blind-safety ranking. Returns the recommended pick id (or null).
+export function renderReco(els, data, opts, ctx, enemyId) {
+  const { recoGrid, recoTitle, recoDesc, draftFlag } = els;
+  const nameOf = (id) => { const m = ctx.champByRiotId(id); return m ? m.name : id; };
+  const mainSet = new Set((opts.mains || []).map(String));
+  draftFlag.hidden = true;
+  draftFlag.textContent = "";
+
+  if (!enemyId) {
+    // Blind state.
+    const blinds = blindScores(data, opts);
+    recoTitle.textContent = "Your blind pick";
+    if (blinds.length === 0) {
+      recoDesc.textContent = "Add champions to your pool to get a recommendation.";
+      recoGrid.innerHTML = `<p class="reco-empty">No pool yet.</p>`;
+      return null;
+    }
+    recoDesc.innerHTML = `No enemy picked yet — your safest first-pick is <strong>${escapeHtml(nameOf(blinds[0].p))}</strong>. Click the enemy champion on the right to get a counter.`;
+    recoGrid.innerHTML = blinds.map((b, i) => champTile(b.p, ctx, {
+      tag: i === 0 ? "blind" : undefined,
+      best: i === 0,
+      isMain: mainSet.has(String(b.p)),
+    })).join("");
+    return blinds[0].p;
+  }
+
+  // Counter state.
+  const res = draftPicks(data, opts, enemyId);
+  recoTitle.innerHTML = `Best pick vs ${escapeHtml(nameOf(enemyId))}`;
+  if (!res.hasData) {
+    recoDesc.textContent = "No matchup data between your pool and this champion at the current sample threshold.";
+    recoGrid.innerHTML = res.rows.map((r) => champTile(r.p, ctx, { d2: null, nodata: true, isMain: r.isMain })).join("");
+    return null;
+  }
+  const bestName = nameOf(res.best);
+  const bestRow = res.rows.find((r) => String(r.p) === String(res.best));
+  recoDesc.innerHTML = `Pick <strong>${escapeHtml(bestName)}</strong> — Δ2 ${bestRow.raw >= 0 ? "+" : ""}${bestRow.raw.toFixed(2)} into ${escapeHtml(nameOf(enemyId))}.`;
+  recoGrid.innerHTML = res.rows.map((r) => champTile(r.p, ctx, {
+    d2: r.raw,
+    nodata: r.raw == null,
+    best: String(r.p) === String(res.best) && r.raw != null,
+    tag: String(r.p) === String(res.best) && r.raw != null ? "best" : undefined,
+    isMain: r.isMain,
+  })).join("");
+  if (res.allLose) {
+    draftFlag.hidden = false;
+    draftFlag.innerHTML = `⚠ Your whole pool is behind into <strong>${escapeHtml(nameOf(enemyId))}</strong>. <strong>${escapeHtml(bestName)}</strong> is the least-bad at Δ2 ${bestRow.raw.toFixed(2)} — consider a ban or a flex pick.`;
+  }
+  return res.best;
 }

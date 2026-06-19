@@ -28,3 +28,11 @@ export function loadLane() {
 export function saveLane(lane) {
   localStorage.setItem(`${PREFIX}:lane`, lane);
 }
+
+export function loadMode() {
+  return localStorage.getItem(`${PREFIX}:mode`) || "analyze";
+}
+
+export function saveMode(mode) {
+  localStorage.setItem(`${PREFIX}:mode`, mode);
+}

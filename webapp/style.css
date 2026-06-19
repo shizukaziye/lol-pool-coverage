@@ -21,6 +21,10 @@
 
 * { box-sizing: border-box; }
 
+/* The `hidden` attribute must win over component display rules (e.g. .grid sets
+   display:grid, which would otherwise override the UA [hidden]{display:none}). */
+[hidden] { display: none !important; }
+
 html, body {
   margin: 0;
   padding: 0;
@@ -538,4 +542,107 @@ td.empty-state { white-space: normal; }
   .hero { margin-left: 0.8em; margin-right: 0.8em; }
   .site-footer { margin-left: 0.8em; margin-right: 0.8em; }
   .hero-lead { font-size: 0.98em; }
+}
+
+/* ============================================================
+   Draft assistant — League champ-select-style large tiles
+   ============================================================ */
+
+/* Mode toggle (Pool analysis / Draft assistant) */
+.mode-switch {
+  max-width: var(--maxw);
+  margin: 0.2em auto -0.4em;
+  padding: 0 1.2em;
+  display: flex;
+  gap: 0.5em;
+}
+.mode-btn {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  border-radius: 999px;
+  padding: 0.45em 1.2em;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95em;
+}
+.mode-btn:hover { color: var(--text); border-color: var(--accent); }
+.mode-btn.active { background: var(--accent); color: #06122b; border-color: var(--accent); }
+
+/* Draft layout */
+.draft-view { max-width: var(--maxw); margin: 1em auto; padding: 0 1.2em; }
+.draft-empty {
+  background: var(--bg-elev); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.2em 1.4em; color: var(--text-dim);
+}
+.draft-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 1em; align-items: start; }
+.draft-reco { position: sticky; top: 64px; }
+.draft-flag {
+  margin: 0.8em 0 0; padding: 0.6em 0.8em; border-radius: var(--radius);
+  font-size: 0.92em; background: rgba(248,81,73,0.12); border: 1px solid var(--bad); color: var(--bad);
+}
+.enemy-bar { display: flex; gap: 0.5em; margin-bottom: 0.9em; }
+.enemy-search {
+  flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text); padding: 0.6em 0.8em; font-size: 1em;
+}
+.enemy-search:focus { outline: none; border-color: var(--accent); }
+
+/* Champion tiles — big square portrait + name caption (champ-select feel) */
+.champ-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  gap: 12px;
+}
+.enemy-grid { max-height: 64vh; overflow-y: auto; padding: 2px 6px 2px 2px; }
+.reco-grid { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); }
+
+.champ-tile {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 0.45em;
+  cursor: pointer;
+  border: 2px solid transparent; border-radius: 9px;
+  padding: 7px 5px 9px; background: var(--bg-elev2);
+  transition: transform .1s ease, border-color .1s ease, background .1s ease;
+}
+.champ-tile img {
+  width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
+  border-radius: 6px; display: block; background: var(--bg);
+}
+.champ-tile .tile-name {
+  font-size: 0.9em; text-align: center; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+.champ-tile .tile-name .star { color: var(--accent-2); }
+.champ-tile:hover { transform: translateY(-2px); border-color: var(--accent); background: var(--row-hover); }
+.champ-tile.selected { border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent), var(--shadow-pop); }
+.champ-tile.nodata { opacity: 0.45; }
+
+/* Recommendation tile extras: Δ2 badge, best/main ribbons */
+.champ-tile .tile-d2 {
+  position: absolute; top: 9px; right: 9px;
+  font-size: 0.82em; font-weight: 700; padding: 1px 7px; border-radius: 999px;
+  background: rgba(0,0,0,0.62); font-variant-numeric: tabular-nums;
+}
+.tile-d2.pos { color: var(--good); }
+.tile-d2.neg { color: var(--bad); }
+.tile-d2.na { color: var(--text-dim); }
+.champ-tile.best { border-color: var(--good); box-shadow: inset 0 0 0 2px var(--good); }
+.tile-tag {
+  position: absolute; top: 7px; left: 7px; z-index: 1;
+  font-size: 0.66em; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 4px;
+}
+.tile-tag.best { background: var(--good); color: #04210f; }
+.tile-tag.blind { background: var(--accent); color: #06122b; }
+.reco-empty { color: var(--text-dim); padding: 0.4em 0; }
+
+@media (max-width: 900px) {
+  .draft-cols { grid-template-columns: 1fr; }
+  .draft-reco { position: static; }
+  .enemy-grid { max-height: none; }
+}
+@media (max-width: 520px) {
+  .draft-view, .mode-switch { padding-left: 0.8em; padding-right: 0.8em; }
+  .champ-grid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 9px; }
 }

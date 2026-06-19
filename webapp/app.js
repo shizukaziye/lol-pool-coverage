@@ -12,6 +12,7 @@ const DEFAULT_STATE = () => ({
   minPr: 1.5,
   minGames: 100,
   mainBuf: 1.0,
+  draftEnemy: null,   // riot id of the enemy laner selected in Draft mode
 });
 
 const els = {
@@ -51,6 +52,20 @@ const els = {
   footerFreshness: document.getElementById("footer-freshness"),
   patchBlend: document.getElementById("patch-blend"),
   patchBlendList: document.getElementById("patch-blend-list"),
+
+  modeSwitch: document.querySelector(".mode-switch"),
+  analyzeView: document.getElementById("analyze-view"),
+  draftView: document.getElementById("draft-view"),
+  draftEmpty: document.getElementById("draft-empty"),
+  draftCols: document.getElementById("draft-cols"),
+  enemyLaneLabel: document.getElementById("enemy-lane-label"),
+  enemySearch: document.getElementById("enemy-search"),
+  enemyClear: document.getElementById("enemy-clear"),
+  enemyGrid: document.getElementById("enemy-grid"),
+  recoGrid: document.getElementById("reco-grid"),
+  recoTitle: document.getElementById("reco-title"),
+  recoDesc: document.getElementById("reco-desc"),
+  draftFlag: document.getElementById("draft-flag"),
 };
 
 // ---------- DDragon ----------
@@ -123,6 +138,7 @@ let state = store.loadState(lane) || DEFAULT_STATE();
 let data = null;            // current weighted/{lane}.json
 let dataSource = "none";    // "weighted" | "fixture" | "none" — drives empty-state copy
 let patchesReg = null;      // parsed data/patches.json (patch registry w/ k_back)
+let mode = "analyze";       // "analyze" | "draft"
 let champs = null;          // { by_riot_id, by_slug } (synthesized if no champions.json)
 
 function persist() { store.saveState(lane, state); }
@@ -243,22 +259,8 @@ function renderPoolControls() {
   if (els.clearPool) els.clearPool.hidden = empty;
 }
 
-function renderAll() {
-  renderDataNotice();
-  renderPoolControls();
-  renderPatchBlend();
-  if (!data) {
-    const msg = `<strong>No meta data yet.</strong> The weekly scrape hasn't run for this lane, and no fixture was found. Run the scraper to populate <code>data/weighted/${lane}.json</code>.`;
-    for (const t of [els.worstTable, els.addsTable, els.cutTable, els.blindTable]) {
-      t.innerHTML = `<tbody><tr><td class="empty-state no-data">${msg}</td></tr></tbody>`;
-    }
-    els.usageBars.innerHTML = `<div class="empty-state no-data">${msg}</div>`;
-    els.cutHint.textContent = "";
-    return;
-  }
-  const c = ctx();
-  const mainsSet = new Set(state.mains);
-  const opts = {
+function buildOpts() {
+  return {
     pool: state.pool,
     mains: state.mains,
     banned: state.banned,
@@ -268,6 +270,25 @@ function renderAll() {
     minGames: state.minGames,
     topContributors: 6,
   };
+}
+
+function renderAll() {
+  renderDataNotice();
+  renderPoolControls();
+  renderPatchBlend();
+  const c = ctx();
+  const opts = buildOpts();
+  if (!data) {
+    const msg = `<strong>No meta data yet.</strong> The weekly scrape hasn't run for this lane, and no fixture was found. Run the scraper to populate <code>data/weighted/${lane}.json</code>.`;
+    for (const t of [els.worstTable, els.addsTable, els.cutTable, els.blindTable]) {
+      t.innerHTML = `<tbody><tr><td class="empty-state no-data">${msg}</td></tr></tbody>`;
+    }
+    els.usageBars.innerHTML = `<div class="empty-state no-data">${msg}</div>`;
+    els.cutHint.textContent = "";
+    renderDraft(c, opts);
+    return;
+  }
+  const mainsSet = new Set(state.mains);
   ui.renderChips(els.poolChips, state.pool, c, {
     onRemove: (id) => {
       state.pool = state.pool.filter((x) => x !== id);
@@ -293,6 +314,68 @@ function renderAll() {
   ui.renderCut(els.cutTable, els.cutHint, data, opts, c);
   ui.renderBlind(els.blindTable, data, opts, c);
   ui.renderUsage(els.usageBars, data, opts, c);
+  renderDraft(c, opts);
+}
+
+// ---------- Draft assistant ----------
+
+const LANE_LABEL = { top: "top", jungle: "jungle", middle: "mid", bottom: "bot", support: "support" };
+
+function setMode(newMode) {
+  mode = newMode === "draft" ? "draft" : "analyze";
+  store.saveMode(mode);
+  if (els.modeSwitch) {
+    for (const b of els.modeSwitch.querySelectorAll(".mode-btn")) {
+      const on = b.dataset.mode === mode;
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+    }
+  }
+  if (els.analyzeView) els.analyzeView.hidden = mode !== "analyze";
+  if (els.draftView) els.draftView.hidden = mode !== "draft";
+}
+
+function renderDraft(c, opts) {
+  if (!els.draftView) return;
+  if (els.enemyLaneLabel) els.enemyLaneLabel.textContent = LANE_LABEL[lane] || lane;
+  const poolEmpty = !data || state.pool.length === 0;
+  if (els.draftEmpty) els.draftEmpty.hidden = !poolEmpty;
+  if (els.draftCols) els.draftCols.hidden = poolEmpty;
+  if (poolEmpty) return;
+  const laneIds = c.allChampions().map((x) => x.riot_id);
+  ui.renderEnemyGrid(els.enemyGrid, laneIds, c, state.draftEnemy, els.enemySearch ? els.enemySearch.value : "");
+  if (els.enemyClear) els.enemyClear.hidden = !state.draftEnemy;
+  ui.renderReco(els, data, opts, c, state.draftEnemy);
+}
+
+function refreshDraft() { renderDraft(ctx(), buildOpts()); }
+
+function wireDraft() {
+  els.modeSwitch?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".mode-btn");
+    if (!btn) return;
+    setMode(btn.dataset.mode);
+    if (mode === "draft") refreshDraft();
+  });
+  els.enemySearch?.addEventListener("input", () => {
+    const c = ctx();
+    ui.renderEnemyGrid(els.enemyGrid, c.allChampions().map((x) => x.riot_id), c, state.draftEnemy, els.enemySearch.value);
+  });
+  const pickEnemy = (tile) => {
+    if (!tile) return;
+    state.draftEnemy = tile.dataset.id;
+    persist();
+    refreshDraft();
+  };
+  els.enemyGrid?.addEventListener("click", (e) => pickEnemy(e.target.closest(".champ-tile")));
+  els.enemyGrid?.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault();
+    pickEnemy(e.target.closest(".champ-tile"));
+  });
+  els.enemyClear?.addEventListener("click", () => {
+    state.draftEnemy = null; persist(); refreshDraft();
+  });
 }
 
 // ---------- Wiring ----------
@@ -478,11 +561,14 @@ function renderPatchBlend() {
       if (!champs.by_riot_id[id]) champs.by_riot_id[id] = synth.by_riot_id[id];
     }
   }
+  mode = store.loadMode();
   syncSettingsControls();
   wireLaneTabs();
   wireSettings();
   wirePoolControls();
+  wireDraft();
   attachSearches();
+  setMode(mode);        // apply initial view visibility
   renderAll();
   renderFooterFreshness();
 })();
