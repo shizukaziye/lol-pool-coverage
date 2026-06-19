@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>scoring.js tests</title>
+  <style>
+    body { font-family: ui-monospace, monospace; background: #111; color: #ddd; padding: 1em; }
+    .pass { color: #6ada6a; }
+    .fail { color: #ff6a6a; }
+    .info { color: #88c0ff; }
+    h1 { font-size: 1.1em; }
+    pre { white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+<h1>scoring.js tests</h1>
+<pre id="out"></pre>
+<script type="module">
+import {
+  poolD2, worstMatchups, candidateScores, cutAnalysis,
+  blindScores, usageSimulation, counterPool, DEFAULTS,
+} from "../scoring.js";
+
+const out = document.getElementById("out");
+let passed = 0, failed = 0;
+function log(msg, cls = "info") {
+  const span = document.createElement("span");
+  span.className = cls;
+  span.textContent = msg + "\n";
+  out.appendChild(span);
+}
+function approx(a, b, eps = 1e-9) {
+  return Math.abs(a - b) < eps;
+}
+function assertEq(label, got, expected, eps = 1e-9) {
+  let ok;
+  if (typeof expected === "number") ok = approx(got, expected, eps);
+  else ok = JSON.stringify(got) === JSON.stringify(expected);
+  if (ok) { passed++; log(`PASS  ${label}  =  ${JSON.stringify(got)}`, "pass"); }
+  else { failed++; log(`FAIL  ${label}\n  expected: ${JSON.stringify(expected)}\n  got:      ${JSON.stringify(got)}`, "fail"); }
+}
+
+// ---- Load fixture ----
+const data = await fetch("./fixtures/sample-top.json").then((r) => r.json());
+log(`loaded fixture: ${Object.keys(data.tierlist).length} champs`, "info");
+
+// Pool: Aatrox (266), Garen (86). No mains. Counter pool default minPr=1.5.
+const POOL = ["266", "86"];
+const opts = {
+  pool: POOL,
+  mains: [],
+  banned: [],
+  buf: 1.0,
+  blindRate: 0.40,
+  minPr: 1.5,
+  minGames: 100,
+};
+
+// ---- Counter pool ----
+const cp = counterPool(data, opts).sort();
+assertEq("counterPool (Teemo,Vayne)", cp, ["17", "67"]);
+
+// ---- pool_d2 ----
+const pdTeemo = poolD2(data, "17", opts);
+assertEq("poolD2 vs Teemo .value", pdTeemo.value, 0.5);
+assertEq("poolD2 vs Teemo .by", pdTeemo.by, "86");
+
+const pdVayne = poolD2(data, "67", opts);
+assertEq("poolD2 vs Vayne .value", pdVayne.value, 1.0);
+assertEq("poolD2 vs Vayne .by", pdVayne.by, "266");
+
+// ---- worstMatchups ----
+const worst = worstMatchups(data, opts);
+assertEq("worstMatchups length", worst.length, 2);
+assertEq("worstMatchups[0].counter (Teemo)", worst[0].counter, "17");
+assertEq("worstMatchups[0].value", worst[0].value, 0.5);
+assertEq("worstMatchups[0].by", worst[0].by, "86");
+assertEq("worstMatchups[1].counter (Vayne)", worst[1].counter, "67");
+assertEq("worstMatchups[1].value", worst[1].value, 1.0);
+
+// ---- Candidate scores ----
+const cs = candidateScores(data, opts);
+const byCand = Object.fromEntries(cs.map((r) => [r.cand, r]));
+// Vayne handles Teemo: 3.0 * max(0, -(-1.0 + 0.5)) = 3.0 * 0.5 = 1.5
+assertEq("candidate Vayne score", byCand["67"].score, 1.5);
+// Teemo handles Vayne: 2.0 * max(0, -(1.0 + 1.0)) = 0
+assertEq("candidate Teemo score", byCand["17"].score, 0);
+// Ranking: Vayne first
+assertEq("candidate ranking [0]", cs[0].cand, "67");
+// Vayne's top contributor is Teemo (17)
+assertEq("Vayne top contributor counter", cs[0].contributors[0].counter, "17");
+assertEq("Vayne top contributor contribution", cs[0].contributors[0].contribution, 1.5);
+
+// ---- Cut analysis ----
+const cut = cutAnalysis(data, opts);
+const byP = Object.fromEntries(cut.map((r) => [r.p, r]));
+// Aatrox unique = 2.0 * (1.0 - (-1.5)) = 2.0 * 2.5 = 5.0
+assertEq("cut Aatrox unique", byP["266"].unique, 5.0);
+// Garen unique = 3.0 * (0.5 - (-2.0)) = 3.0 * 2.5 = 7.5
+assertEq("cut Garen unique", byP["86"].unique, 7.5);
+// best-for counts
+assertEq("cut Aatrox bestForCount", byP["266"].bestForCount, 1);
+assertEq("cut Garen bestForCount", byP["86"].bestForCount, 1);
+
+// ---- Blind scores ----
+const blinds = blindScores(data, opts);
+const bByP = Object.fromEntries(blinds.map((r) => [r.p, r]));
+// Aatrox: only Teemo is < 0 → -2.0 * 3.0 = -6.0
+assertEq("blind Aatrox", bByP["266"].blind, -6.0);
+// Garen: only Vayne is < 0 → -1.5 * 2.0 = -3.0
+assertEq("blind Garen", bByP["86"].blind, -3.0);
+// best blind is Garen
+assertEq("best blind", blinds[0].p, "86");
+
+// ---- Usage simulation ----
+const usage = usageSimulation(data, opts);
+const uByP = Object.fromEntries(usage.map((r) => [r.p, r]));
+// counter shares: Garen=3/5=0.6, Aatrox=2/5=0.4
+assertEq("usage Garen counterShare", uByP["86"].counterShare, 0.6);
+assertEq("usage Aatrox counterShare", uByP["266"].counterShare, 0.4);
+// usage(Garen) = 0.4*1 + 0.6*0.6 = 0.76
+assertEq("usage Garen", uByP["86"].usage, 0.76, 1e-12);
+// usage(Aatrox) = 0.4*0 + 0.6*0.4 = 0.24
+assertEq("usage Aatrox", uByP["266"].usage, 0.24, 1e-12);
+
+// ---- Summary ----
+log("", "info");
+log(`PASSED: ${passed}   FAILED: ${failed}`, failed === 0 ? "pass" : "fail");
+</script>
+</body>
+</html>

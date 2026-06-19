@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LoL Pool Coverage</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>LoL Pool Coverage</h1>
+    <nav class="lane-tabs" id="lane-tabs" role="tablist">
+      <button class="lane-tab" data-lane="top" role="tab">Top</button>
+      <button class="lane-tab" data-lane="jungle" role="tab">Jungle</button>
+      <button class="lane-tab" data-lane="middle" role="tab">Middle</button>
+      <button class="lane-tab" data-lane="bottom" role="tab">Bottom</button>
+      <button class="lane-tab" data-lane="support" role="tab">Support</button>
+    </nav>
+    <div class="status" id="status"></div>
+  </header>
+
+  <main class="grid">
+    <!-- Pool builder -->
+    <section class="panel" id="pool-panel">
+      <h2>Your pool</h2>
+      <div class="chip-input">
+        <div class="chips" id="pool-chips" aria-label="Pool champions"></div>
+        <div class="search-wrap">
+          <input type="text" id="pool-search" placeholder="Add a champion..." autocomplete="off" />
+          <ul class="search-results" id="pool-results" role="listbox"></ul>
+        </div>
+      </div>
+      <p class="hint">Click a chip to remove. Toggle <em>Main</em> in Settings for the +1 buffer.</p>
+    </section>
+
+    <!-- Settings -->
+    <section class="panel" id="settings-panel">
+      <h2>Settings</h2>
+
+      <div class="setting">
+        <label>Mains <small>(+1 Δ2 buffer)</small></label>
+        <div class="mains-list" id="mains-list"></div>
+      </div>
+
+      <div class="setting">
+        <label>Banned counters <small>(excluded from counter pool)</small></label>
+        <div class="chip-input">
+          <div class="chips" id="banned-chips"></div>
+          <div class="search-wrap">
+            <input type="text" id="banned-search" placeholder="Add a ban..." autocomplete="off" />
+            <ul class="search-results" id="banned-results" role="listbox"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="setting">
+        <label for="blind-rate">Blind pick rate: <span id="blind-rate-val">40%</span></label>
+        <input type="range" id="blind-rate" min="0" max="100" step="1" value="40" />
+      </div>
+
+      <div class="setting">
+        <label for="min-pr">Min counter PR%: <span id="min-pr-val">1.5</span></label>
+        <input type="range" id="min-pr" min="0" max="10" step="0.1" value="1.5" />
+      </div>
+
+      <div class="setting">
+        <label for="min-games">Min candidate matchup games: <span id="min-games-val">100</span></label>
+        <input type="range" id="min-games" min="0" max="2000" step="50" value="100" />
+      </div>
+    </section>
+
+    <!-- Worst matchups -->
+    <section class="panel wide" id="worst-panel">
+      <h2>Worst pool matchups</h2>
+      <div class="scroll-x"><table class="results-table" id="worst-table"></table></div>
+    </section>
+
+    <!-- Best adds -->
+    <section class="panel wide" id="adds-panel">
+      <h2>Best adds</h2>
+      <div class="scroll-x"><table class="results-table" id="adds-table"></table></div>
+    </section>
+
+    <!-- Cut analysis -->
+    <section class="panel" id="cut-panel">
+      <h2>Cut analysis</h2>
+      <table class="results-table" id="cut-table"></table>
+      <p class="hint" id="cut-hint"></p>
+    </section>
+
+    <!-- Blind safety -->
+    <section class="panel" id="blind-panel">
+      <h2>Blind safety</h2>
+      <table class="results-table" id="blind-table"></table>
+    </section>
+
+    <!-- Usage simulation -->
+    <section class="panel wide" id="usage-panel">
+      <h2>Usage simulation</h2>
+      <div id="usage-bars" class="usage-bars"></div>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
