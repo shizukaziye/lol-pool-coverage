@@ -1,0 +1,1383 @@
+{
+  "by_riot_id": {
+    "1": {
+      "name": "Annie",
+      "slug": "annie"
+    },
+    "10": {
+      "name": "Kayle",
+      "slug": "kayle"
+    },
+    "101": {
+      "name": "Xerath",
+      "slug": "xerath"
+    },
+    "102": {
+      "name": "Shyvana",
+      "slug": "shyvana"
+    },
+    "103": {
+      "name": "Ahri",
+      "slug": "ahri"
+    },
+    "104": {
+      "name": "Graves",
+      "slug": "graves"
+    },
+    "105": {
+      "name": "Fizz",
+      "slug": "fizz"
+    },
+    "106": {
+      "name": "Volibear",
+      "slug": "volibear"
+    },
+    "107": {
+      "name": "Rengar",
+      "slug": "rengar"
+    },
+    "11": {
+      "name": "Master Yi",
+      "slug": "masteryi"
+    },
+    "110": {
+      "name": "Varus",
+      "slug": "varus"
+    },
+    "111": {
+      "name": "Nautilus",
+      "slug": "nautilus"
+    },
+    "112": {
+      "name": "Viktor",
+      "slug": "viktor"
+    },
+    "113": {
+      "name": "Sejuani",
+      "slug": "sejuani"
+    },
+    "114": {
+      "name": "Fiora",
+      "slug": "fiora"
+    },
+    "115": {
+      "name": "Ziggs",
+      "slug": "ziggs"
+    },
+    "117": {
+      "name": "Lulu",
+      "slug": "lulu"
+    },
+    "119": {
+      "name": "Draven",
+      "slug": "draven"
+    },
+    "12": {
+      "name": "Alistar",
+      "slug": "alistar"
+    },
+    "120": {
+      "name": "Hecarim",
+      "slug": "hecarim"
+    },
+    "121": {
+      "name": "Kha'Zix",
+      "slug": "khazix"
+    },
+    "122": {
+      "name": "Darius",
+      "slug": "darius"
+    },
+    "126": {
+      "name": "Jayce",
+      "slug": "jayce"
+    },
+    "127": {
+      "name": "Lissandra",
+      "slug": "lissandra"
+    },
+    "13": {
+      "name": "Ryze",
+      "slug": "ryze"
+    },
+    "131": {
+      "name": "Diana",
+      "slug": "diana"
+    },
+    "133": {
+      "name": "Quinn",
+      "slug": "quinn"
+    },
+    "134": {
+      "name": "Syndra",
+      "slug": "syndra"
+    },
+    "136": {
+      "name": "Aurelion Sol",
+      "slug": "aurelionsol"
+    },
+    "14": {
+      "name": "Sion",
+      "slug": "sion"
+    },
+    "141": {
+      "name": "Kayn",
+      "slug": "kayn"
+    },
+    "142": {
+      "name": "Zoe",
+      "slug": "zoe"
+    },
+    "143": {
+      "name": "Zyra",
+      "slug": "zyra"
+    },
+    "145": {
+      "name": "Kai'Sa",
+      "slug": "kaisa"
+    },
+    "147": {
+      "name": "Seraphine",
+      "slug": "seraphine"
+    },
+    "15": {
+      "name": "Sivir",
+      "slug": "sivir"
+    },
+    "150": {
+      "name": "Gnar",
+      "slug": "gnar"
+    },
+    "154": {
+      "name": "Zac",
+      "slug": "zac"
+    },
+    "157": {
+      "name": "Yasuo",
+      "slug": "yasuo"
+    },
+    "16": {
+      "name": "Soraka",
+      "slug": "soraka"
+    },
+    "161": {
+      "name": "Vel'Koz",
+      "slug": "velkoz"
+    },
+    "163": {
+      "name": "Taliyah",
+      "slug": "taliyah"
+    },
+    "164": {
+      "name": "Camille",
+      "slug": "camille"
+    },
+    "166": {
+      "name": "Akshan",
+      "slug": "akshan"
+    },
+    "17": {
+      "name": "Teemo",
+      "slug": "teemo"
+    },
+    "18": {
+      "name": "Tristana",
+      "slug": "tristana"
+    },
+    "19": {
+      "name": "Warwick",
+      "slug": "warwick"
+    },
+    "2": {
+      "name": "Olaf",
+      "slug": "olaf"
+    },
+    "20": {
+      "name": "Nunu & Willump",
+      "slug": "nunu"
+    },
+    "200": {
+      "name": "Bel'Veth",
+      "slug": "belveth"
+    },
+    "201": {
+      "name": "Braum",
+      "slug": "braum"
+    },
+    "202": {
+      "name": "Jhin",
+      "slug": "jhin"
+    },
+    "203": {
+      "name": "Kindred",
+      "slug": "kindred"
+    },
+    "21": {
+      "name": "Miss Fortune",
+      "slug": "missfortune"
+    },
+    "22": {
+      "name": "Ashe",
+      "slug": "ashe"
+    },
+    "221": {
+      "name": "Zeri",
+      "slug": "zeri"
+    },
+    "222": {
+      "name": "Jinx",
+      "slug": "jinx"
+    },
+    "223": {
+      "name": "Tahm Kench",
+      "slug": "tahmkench"
+    },
+    "23": {
+      "name": "Tryndamere",
+      "slug": "tryndamere"
+    },
+    "233": {
+      "name": "Briar",
+      "slug": "briar"
+    },
+    "234": {
+      "name": "Viego",
+      "slug": "viego"
+    },
+    "235": {
+      "name": "Senna",
+      "slug": "senna"
+    },
+    "236": {
+      "name": "Lucian",
+      "slug": "lucian"
+    },
+    "238": {
+      "name": "Zed",
+      "slug": "zed"
+    },
+    "24": {
+      "name": "Jax",
+      "slug": "jax"
+    },
+    "240": {
+      "name": "Kled",
+      "slug": "kled"
+    },
+    "245": {
+      "name": "Ekko",
+      "slug": "ekko"
+    },
+    "246": {
+      "name": "Qiyana",
+      "slug": "qiyana"
+    },
+    "25": {
+      "name": "Morgana",
+      "slug": "morgana"
+    },
+    "254": {
+      "name": "Vi",
+      "slug": "vi"
+    },
+    "26": {
+      "name": "Zilean",
+      "slug": "zilean"
+    },
+    "266": {
+      "name": "Aatrox",
+      "slug": "aatrox"
+    },
+    "267": {
+      "name": "Nami",
+      "slug": "nami"
+    },
+    "268": {
+      "name": "Azir",
+      "slug": "azir"
+    },
+    "27": {
+      "name": "Singed",
+      "slug": "singed"
+    },
+    "28": {
+      "name": "Evelynn",
+      "slug": "evelynn"
+    },
+    "29": {
+      "name": "Twitch",
+      "slug": "twitch"
+    },
+    "3": {
+      "name": "Galio",
+      "slug": "galio"
+    },
+    "30": {
+      "name": "Karthus",
+      "slug": "karthus"
+    },
+    "31": {
+      "name": "Cho'Gath",
+      "slug": "chogath"
+    },
+    "32": {
+      "name": "Amumu",
+      "slug": "amumu"
+    },
+    "33": {
+      "name": "Rammus",
+      "slug": "rammus"
+    },
+    "34": {
+      "name": "Anivia",
+      "slug": "anivia"
+    },
+    "35": {
+      "name": "Shaco",
+      "slug": "shaco"
+    },
+    "350": {
+      "name": "Yuumi",
+      "slug": "yuumi"
+    },
+    "36": {
+      "name": "Dr. Mundo",
+      "slug": "drmundo"
+    },
+    "360": {
+      "name": "Samira",
+      "slug": "samira"
+    },
+    "37": {
+      "name": "Sona",
+      "slug": "sona"
+    },
+    "38": {
+      "name": "Kassadin",
+      "slug": "kassadin"
+    },
+    "39": {
+      "name": "Irelia",
+      "slug": "irelia"
+    },
+    "4": {
+      "name": "Twisted Fate",
+      "slug": "twistedfate"
+    },
+    "40": {
+      "name": "Janna",
+      "slug": "janna"
+    },
+    "41": {
+      "name": "Gangplank",
+      "slug": "gangplank"
+    },
+    "412": {
+      "name": "Thresh",
+      "slug": "thresh"
+    },
+    "42": {
+      "name": "Corki",
+      "slug": "corki"
+    },
+    "420": {
+      "name": "Illaoi",
+      "slug": "illaoi"
+    },
+    "421": {
+      "name": "Rek'Sai",
+      "slug": "reksai"
+    },
+    "427": {
+      "name": "Ivern",
+      "slug": "ivern"
+    },
+    "429": {
+      "name": "Kalista",
+      "slug": "kalista"
+    },
+    "43": {
+      "name": "Karma",
+      "slug": "karma"
+    },
+    "432": {
+      "name": "Bard",
+      "slug": "bard"
+    },
+    "44": {
+      "name": "Taric",
+      "slug": "taric"
+    },
+    "45": {
+      "name": "Veigar",
+      "slug": "veigar"
+    },
+    "48": {
+      "name": "Trundle",
+      "slug": "trundle"
+    },
+    "497": {
+      "name": "Rakan",
+      "slug": "rakan"
+    },
+    "498": {
+      "name": "Xayah",
+      "slug": "xayah"
+    },
+    "5": {
+      "name": "Xin Zhao",
+      "slug": "xinzhao"
+    },
+    "50": {
+      "name": "Swain",
+      "slug": "swain"
+    },
+    "51": {
+      "name": "Caitlyn",
+      "slug": "caitlyn"
+    },
+    "516": {
+      "name": "Ornn",
+      "slug": "ornn"
+    },
+    "517": {
+      "name": "Sylas",
+      "slug": "sylas"
+    },
+    "518": {
+      "name": "Neeko",
+      "slug": "neeko"
+    },
+    "523": {
+      "name": "Aphelios",
+      "slug": "aphelios"
+    },
+    "526": {
+      "name": "Rell",
+      "slug": "rell"
+    },
+    "53": {
+      "name": "Blitzcrank",
+      "slug": "blitzcrank"
+    },
+    "54": {
+      "name": "Malphite",
+      "slug": "malphite"
+    },
+    "55": {
+      "name": "Katarina",
+      "slug": "katarina"
+    },
+    "555": {
+      "name": "Pyke",
+      "slug": "pyke"
+    },
+    "56": {
+      "name": "Nocturne",
+      "slug": "nocturne"
+    },
+    "57": {
+      "name": "Maokai",
+      "slug": "maokai"
+    },
+    "58": {
+      "name": "Renekton",
+      "slug": "renekton"
+    },
+    "59": {
+      "name": "Jarvan IV",
+      "slug": "jarvaniv"
+    },
+    "6": {
+      "name": "Urgot",
+      "slug": "urgot"
+    },
+    "60": {
+      "name": "Elise",
+      "slug": "elise"
+    },
+    "61": {
+      "name": "Orianna",
+      "slug": "orianna"
+    },
+    "62": {
+      "name": "Wukong",
+      "slug": "wukong"
+    },
+    "63": {
+      "name": "Brand",
+      "slug": "brand"
+    },
+    "64": {
+      "name": "Lee Sin",
+      "slug": "leesin"
+    },
+    "67": {
+      "name": "Vayne",
+      "slug": "vayne"
+    },
+    "68": {
+      "name": "Rumble",
+      "slug": "rumble"
+    },
+    "69": {
+      "name": "Cassiopeia",
+      "slug": "cassiopeia"
+    },
+    "7": {
+      "name": "LeBlanc",
+      "slug": "leblanc"
+    },
+    "711": {
+      "name": "Vex",
+      "slug": "vex"
+    },
+    "72": {
+      "name": "Skarner",
+      "slug": "skarner"
+    },
+    "74": {
+      "name": "Heimerdinger",
+      "slug": "heimerdinger"
+    },
+    "75": {
+      "name": "Nasus",
+      "slug": "nasus"
+    },
+    "76": {
+      "name": "Nidalee",
+      "slug": "nidalee"
+    },
+    "77": {
+      "name": "Udyr",
+      "slug": "udyr"
+    },
+    "777": {
+      "name": "Yone",
+      "slug": "yone"
+    },
+    "78": {
+      "name": "Poppy",
+      "slug": "poppy"
+    },
+    "79": {
+      "name": "Gragas",
+      "slug": "gragas"
+    },
+    "799": {
+      "name": "Ambessa",
+      "slug": "ambessa"
+    },
+    "8": {
+      "name": "Vladimir",
+      "slug": "vladimir"
+    },
+    "80": {
+      "name": "Pantheon",
+      "slug": "pantheon"
+    },
+    "800": {
+      "name": "Mel",
+      "slug": "mel"
+    },
+    "804": {
+      "name": "Yunara",
+      "slug": "yunara"
+    },
+    "81": {
+      "name": "Ezreal",
+      "slug": "ezreal"
+    },
+    "82": {
+      "name": "Mordekaiser",
+      "slug": "mordekaiser"
+    },
+    "83": {
+      "name": "Yorick",
+      "slug": "yorick"
+    },
+    "84": {
+      "name": "Akali",
+      "slug": "akali"
+    },
+    "85": {
+      "name": "Kennen",
+      "slug": "kennen"
+    },
+    "86": {
+      "name": "Garen",
+      "slug": "garen"
+    },
+    "875": {
+      "name": "Sett",
+      "slug": "sett"
+    },
+    "876": {
+      "name": "Lillia",
+      "slug": "lillia"
+    },
+    "887": {
+      "name": "Gwen",
+      "slug": "gwen"
+    },
+    "888": {
+      "name": "Renata Glasc",
+      "slug": "renata"
+    },
+    "89": {
+      "name": "Leona",
+      "slug": "leona"
+    },
+    "893": {
+      "name": "Aurora",
+      "slug": "aurora"
+    },
+    "895": {
+      "name": "Nilah",
+      "slug": "nilah"
+    },
+    "897": {
+      "name": "K'Sante",
+      "slug": "ksante"
+    },
+    "9": {
+      "name": "Fiddlesticks",
+      "slug": "fiddlesticks"
+    },
+    "90": {
+      "name": "Malzahar",
+      "slug": "malzahar"
+    },
+    "901": {
+      "name": "Smolder",
+      "slug": "smolder"
+    },
+    "902": {
+      "name": "Milio",
+      "slug": "milio"
+    },
+    "904": {
+      "name": "Zaahen",
+      "slug": "zaahen"
+    },
+    "91": {
+      "name": "Talon",
+      "slug": "talon"
+    },
+    "910": {
+      "name": "Hwei",
+      "slug": "hwei"
+    },
+    "92": {
+      "name": "Riven",
+      "slug": "riven"
+    },
+    "950": {
+      "name": "Naafiri",
+      "slug": "naafiri"
+    },
+    "96": {
+      "name": "Kog'Maw",
+      "slug": "kogmaw"
+    },
+    "98": {
+      "name": "Shen",
+      "slug": "shen"
+    },
+    "99": {
+      "name": "Lux",
+      "slug": "lux"
+    }
+  },
+  "by_slug": {
+    "aatrox": {
+      "name": "Aatrox",
+      "riot_id": 266
+    },
+    "ahri": {
+      "name": "Ahri",
+      "riot_id": 103
+    },
+    "akali": {
+      "name": "Akali",
+      "riot_id": 84
+    },
+    "akshan": {
+      "name": "Akshan",
+      "riot_id": 166
+    },
+    "alistar": {
+      "name": "Alistar",
+      "riot_id": 12
+    },
+    "ambessa": {
+      "name": "Ambessa",
+      "riot_id": 799
+    },
+    "amumu": {
+      "name": "Amumu",
+      "riot_id": 32
+    },
+    "anivia": {
+      "name": "Anivia",
+      "riot_id": 34
+    },
+    "annie": {
+      "name": "Annie",
+      "riot_id": 1
+    },
+    "aphelios": {
+      "name": "Aphelios",
+      "riot_id": 523
+    },
+    "ashe": {
+      "name": "Ashe",
+      "riot_id": 22
+    },
+    "aurelionsol": {
+      "name": "Aurelion Sol",
+      "riot_id": 136
+    },
+    "aurora": {
+      "name": "Aurora",
+      "riot_id": 893
+    },
+    "azir": {
+      "name": "Azir",
+      "riot_id": 268
+    },
+    "bard": {
+      "name": "Bard",
+      "riot_id": 432
+    },
+    "belveth": {
+      "name": "Bel'Veth",
+      "riot_id": 200
+    },
+    "blitzcrank": {
+      "name": "Blitzcrank",
+      "riot_id": 53
+    },
+    "brand": {
+      "name": "Brand",
+      "riot_id": 63
+    },
+    "braum": {
+      "name": "Braum",
+      "riot_id": 201
+    },
+    "briar": {
+      "name": "Briar",
+      "riot_id": 233
+    },
+    "caitlyn": {
+      "name": "Caitlyn",
+      "riot_id": 51
+    },
+    "camille": {
+      "name": "Camille",
+      "riot_id": 164
+    },
+    "cassiopeia": {
+      "name": "Cassiopeia",
+      "riot_id": 69
+    },
+    "chogath": {
+      "name": "Cho'Gath",
+      "riot_id": 31
+    },
+    "corki": {
+      "name": "Corki",
+      "riot_id": 42
+    },
+    "darius": {
+      "name": "Darius",
+      "riot_id": 122
+    },
+    "diana": {
+      "name": "Diana",
+      "riot_id": 131
+    },
+    "draven": {
+      "name": "Draven",
+      "riot_id": 119
+    },
+    "drmundo": {
+      "name": "Dr. Mundo",
+      "riot_id": 36
+    },
+    "ekko": {
+      "name": "Ekko",
+      "riot_id": 245
+    },
+    "elise": {
+      "name": "Elise",
+      "riot_id": 60
+    },
+    "evelynn": {
+      "name": "Evelynn",
+      "riot_id": 28
+    },
+    "ezreal": {
+      "name": "Ezreal",
+      "riot_id": 81
+    },
+    "fiddlesticks": {
+      "name": "Fiddlesticks",
+      "riot_id": 9
+    },
+    "fiora": {
+      "name": "Fiora",
+      "riot_id": 114
+    },
+    "fizz": {
+      "name": "Fizz",
+      "riot_id": 105
+    },
+    "galio": {
+      "name": "Galio",
+      "riot_id": 3
+    },
+    "gangplank": {
+      "name": "Gangplank",
+      "riot_id": 41
+    },
+    "garen": {
+      "name": "Garen",
+      "riot_id": 86
+    },
+    "gnar": {
+      "name": "Gnar",
+      "riot_id": 150
+    },
+    "gragas": {
+      "name": "Gragas",
+      "riot_id": 79
+    },
+    "graves": {
+      "name": "Graves",
+      "riot_id": 104
+    },
+    "gwen": {
+      "name": "Gwen",
+      "riot_id": 887
+    },
+    "hecarim": {
+      "name": "Hecarim",
+      "riot_id": 120
+    },
+    "heimerdinger": {
+      "name": "Heimerdinger",
+      "riot_id": 74
+    },
+    "hwei": {
+      "name": "Hwei",
+      "riot_id": 910
+    },
+    "illaoi": {
+      "name": "Illaoi",
+      "riot_id": 420
+    },
+    "irelia": {
+      "name": "Irelia",
+      "riot_id": 39
+    },
+    "ivern": {
+      "name": "Ivern",
+      "riot_id": 427
+    },
+    "janna": {
+      "name": "Janna",
+      "riot_id": 40
+    },
+    "jarvaniv": {
+      "name": "Jarvan IV",
+      "riot_id": 59
+    },
+    "jax": {
+      "name": "Jax",
+      "riot_id": 24
+    },
+    "jayce": {
+      "name": "Jayce",
+      "riot_id": 126
+    },
+    "jhin": {
+      "name": "Jhin",
+      "riot_id": 202
+    },
+    "jinx": {
+      "name": "Jinx",
+      "riot_id": 222
+    },
+    "kaisa": {
+      "name": "Kai'Sa",
+      "riot_id": 145
+    },
+    "kalista": {
+      "name": "Kalista",
+      "riot_id": 429
+    },
+    "karma": {
+      "name": "Karma",
+      "riot_id": 43
+    },
+    "karthus": {
+      "name": "Karthus",
+      "riot_id": 30
+    },
+    "kassadin": {
+      "name": "Kassadin",
+      "riot_id": 38
+    },
+    "katarina": {
+      "name": "Katarina",
+      "riot_id": 55
+    },
+    "kayle": {
+      "name": "Kayle",
+      "riot_id": 10
+    },
+    "kayn": {
+      "name": "Kayn",
+      "riot_id": 141
+    },
+    "kennen": {
+      "name": "Kennen",
+      "riot_id": 85
+    },
+    "khazix": {
+      "name": "Kha'Zix",
+      "riot_id": 121
+    },
+    "kindred": {
+      "name": "Kindred",
+      "riot_id": 203
+    },
+    "kled": {
+      "name": "Kled",
+      "riot_id": 240
+    },
+    "kogmaw": {
+      "name": "Kog'Maw",
+      "riot_id": 96
+    },
+    "ksante": {
+      "name": "K'Sante",
+      "riot_id": 897
+    },
+    "leblanc": {
+      "name": "LeBlanc",
+      "riot_id": 7
+    },
+    "leesin": {
+      "name": "Lee Sin",
+      "riot_id": 64
+    },
+    "leona": {
+      "name": "Leona",
+      "riot_id": 89
+    },
+    "lillia": {
+      "name": "Lillia",
+      "riot_id": 876
+    },
+    "lissandra": {
+      "name": "Lissandra",
+      "riot_id": 127
+    },
+    "lucian": {
+      "name": "Lucian",
+      "riot_id": 236
+    },
+    "lulu": {
+      "name": "Lulu",
+      "riot_id": 117
+    },
+    "lux": {
+      "name": "Lux",
+      "riot_id": 99
+    },
+    "malphite": {
+      "name": "Malphite",
+      "riot_id": 54
+    },
+    "malzahar": {
+      "name": "Malzahar",
+      "riot_id": 90
+    },
+    "maokai": {
+      "name": "Maokai",
+      "riot_id": 57
+    },
+    "masteryi": {
+      "name": "Master Yi",
+      "riot_id": 11
+    },
+    "mel": {
+      "name": "Mel",
+      "riot_id": 800
+    },
+    "milio": {
+      "name": "Milio",
+      "riot_id": 902
+    },
+    "missfortune": {
+      "name": "Miss Fortune",
+      "riot_id": 21
+    },
+    "mordekaiser": {
+      "name": "Mordekaiser",
+      "riot_id": 82
+    },
+    "morgana": {
+      "name": "Morgana",
+      "riot_id": 25
+    },
+    "naafiri": {
+      "name": "Naafiri",
+      "riot_id": 950
+    },
+    "nami": {
+      "name": "Nami",
+      "riot_id": 267
+    },
+    "nasus": {
+      "name": "Nasus",
+      "riot_id": 75
+    },
+    "nautilus": {
+      "name": "Nautilus",
+      "riot_id": 111
+    },
+    "neeko": {
+      "name": "Neeko",
+      "riot_id": 518
+    },
+    "nidalee": {
+      "name": "Nidalee",
+      "riot_id": 76
+    },
+    "nilah": {
+      "name": "Nilah",
+      "riot_id": 895
+    },
+    "nocturne": {
+      "name": "Nocturne",
+      "riot_id": 56
+    },
+    "nunu": {
+      "name": "Nunu & Willump",
+      "riot_id": 20
+    },
+    "olaf": {
+      "name": "Olaf",
+      "riot_id": 2
+    },
+    "orianna": {
+      "name": "Orianna",
+      "riot_id": 61
+    },
+    "ornn": {
+      "name": "Ornn",
+      "riot_id": 516
+    },
+    "pantheon": {
+      "name": "Pantheon",
+      "riot_id": 80
+    },
+    "poppy": {
+      "name": "Poppy",
+      "riot_id": 78
+    },
+    "pyke": {
+      "name": "Pyke",
+      "riot_id": 555
+    },
+    "qiyana": {
+      "name": "Qiyana",
+      "riot_id": 246
+    },
+    "quinn": {
+      "name": "Quinn",
+      "riot_id": 133
+    },
+    "rakan": {
+      "name": "Rakan",
+      "riot_id": 497
+    },
+    "rammus": {
+      "name": "Rammus",
+      "riot_id": 33
+    },
+    "reksai": {
+      "name": "Rek'Sai",
+      "riot_id": 421
+    },
+    "rell": {
+      "name": "Rell",
+      "riot_id": 526
+    },
+    "renata": {
+      "name": "Renata Glasc",
+      "riot_id": 888
+    },
+    "renekton": {
+      "name": "Renekton",
+      "riot_id": 58
+    },
+    "rengar": {
+      "name": "Rengar",
+      "riot_id": 107
+    },
+    "riven": {
+      "name": "Riven",
+      "riot_id": 92
+    },
+    "rumble": {
+      "name": "Rumble",
+      "riot_id": 68
+    },
+    "ryze": {
+      "name": "Ryze",
+      "riot_id": 13
+    },
+    "samira": {
+      "name": "Samira",
+      "riot_id": 360
+    },
+    "sejuani": {
+      "name": "Sejuani",
+      "riot_id": 113
+    },
+    "senna": {
+      "name": "Senna",
+      "riot_id": 235
+    },
+    "seraphine": {
+      "name": "Seraphine",
+      "riot_id": 147
+    },
+    "sett": {
+      "name": "Sett",
+      "riot_id": 875
+    },
+    "shaco": {
+      "name": "Shaco",
+      "riot_id": 35
+    },
+    "shen": {
+      "name": "Shen",
+      "riot_id": 98
+    },
+    "shyvana": {
+      "name": "Shyvana",
+      "riot_id": 102
+    },
+    "singed": {
+      "name": "Singed",
+      "riot_id": 27
+    },
+    "sion": {
+      "name": "Sion",
+      "riot_id": 14
+    },
+    "sivir": {
+      "name": "Sivir",
+      "riot_id": 15
+    },
+    "skarner": {
+      "name": "Skarner",
+      "riot_id": 72
+    },
+    "smolder": {
+      "name": "Smolder",
+      "riot_id": 901
+    },
+    "sona": {
+      "name": "Sona",
+      "riot_id": 37
+    },
+    "soraka": {
+      "name": "Soraka",
+      "riot_id": 16
+    },
+    "swain": {
+      "name": "Swain",
+      "riot_id": 50
+    },
+    "sylas": {
+      "name": "Sylas",
+      "riot_id": 517
+    },
+    "syndra": {
+      "name": "Syndra",
+      "riot_id": 134
+    },
+    "tahmkench": {
+      "name": "Tahm Kench",
+      "riot_id": 223
+    },
+    "taliyah": {
+      "name": "Taliyah",
+      "riot_id": 163
+    },
+    "talon": {
+      "name": "Talon",
+      "riot_id": 91
+    },
+    "taric": {
+      "name": "Taric",
+      "riot_id": 44
+    },
+    "teemo": {
+      "name": "Teemo",
+      "riot_id": 17
+    },
+    "thresh": {
+      "name": "Thresh",
+      "riot_id": 412
+    },
+    "tristana": {
+      "name": "Tristana",
+      "riot_id": 18
+    },
+    "trundle": {
+      "name": "Trundle",
+      "riot_id": 48
+    },
+    "tryndamere": {
+      "name": "Tryndamere",
+      "riot_id": 23
+    },
+    "twistedfate": {
+      "name": "Twisted Fate",
+      "riot_id": 4
+    },
+    "twitch": {
+      "name": "Twitch",
+      "riot_id": 29
+    },
+    "udyr": {
+      "name": "Udyr",
+      "riot_id": 77
+    },
+    "urgot": {
+      "name": "Urgot",
+      "riot_id": 6
+    },
+    "varus": {
+      "name": "Varus",
+      "riot_id": 110
+    },
+    "vayne": {
+      "name": "Vayne",
+      "riot_id": 67
+    },
+    "veigar": {
+      "name": "Veigar",
+      "riot_id": 45
+    },
+    "velkoz": {
+      "name": "Vel'Koz",
+      "riot_id": 161
+    },
+    "vex": {
+      "name": "Vex",
+      "riot_id": 711
+    },
+    "vi": {
+      "name": "Vi",
+      "riot_id": 254
+    },
+    "viego": {
+      "name": "Viego",
+      "riot_id": 234
+    },
+    "viktor": {
+      "name": "Viktor",
+      "riot_id": 112
+    },
+    "vladimir": {
+      "name": "Vladimir",
+      "riot_id": 8
+    },
+    "volibear": {
+      "name": "Volibear",
+      "riot_id": 106
+    },
+    "warwick": {
+      "name": "Warwick",
+      "riot_id": 19
+    },
+    "wukong": {
+      "name": "Wukong",
+      "riot_id": 62
+    },
+    "xayah": {
+      "name": "Xayah",
+      "riot_id": 498
+    },
+    "xerath": {
+      "name": "Xerath",
+      "riot_id": 101
+    },
+    "xinzhao": {
+      "name": "Xin Zhao",
+      "riot_id": 5
+    },
+    "yasuo": {
+      "name": "Yasuo",
+      "riot_id": 157
+    },
+    "yone": {
+      "name": "Yone",
+      "riot_id": 777
+    },
+    "yorick": {
+      "name": "Yorick",
+      "riot_id": 83
+    },
+    "yunara": {
+      "name": "Yunara",
+      "riot_id": 804
+    },
+    "yuumi": {
+      "name": "Yuumi",
+      "riot_id": 350
+    },
+    "zaahen": {
+      "name": "Zaahen",
+      "riot_id": 904
+    },
+    "zac": {
+      "name": "Zac",
+      "riot_id": 154
+    },
+    "zed": {
+      "name": "Zed",
+      "riot_id": 238
+    },
+    "zeri": {
+      "name": "Zeri",
+      "riot_id": 221
+    },
+    "ziggs": {
+      "name": "Ziggs",
+      "riot_id": 115
+    },
+    "zilean": {
+      "name": "Zilean",
+      "riot_id": 26
+    },
+    "zoe": {
+      "name": "Zoe",
+      "riot_id": 142
+    },
+    "zyra": {
+      "name": "Zyra",
+      "riot_id": 143
+    }
+  },
+  "schema_version": 1
+}
