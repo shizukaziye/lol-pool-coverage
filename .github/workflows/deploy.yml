@@ -44,7 +44,13 @@ jobs:
         run: |
           mkdir -p _site
           cp -R webapp _site/webapp
-          cp -R data   _site/data
+          if [ -d data ]; then
+            cp -R data _site/data
+          else
+            # First-ever deploy before any scrape has run.
+            # webapp gracefully falls back to its test fixture; ship an empty dir.
+            mkdir -p _site/data
+          fi
           if [ -f index.html ]; then
             cp index.html _site/index.html
           else
