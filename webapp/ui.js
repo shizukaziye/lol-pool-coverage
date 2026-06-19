@@ -28,17 +28,25 @@ function escapeHtml(s) {
 
 // ---------------- Chip inputs ----------------
 
-export function renderChips(container, ids, ctx, { onRemove, mainsSet = new Set() } = {}) {
+export function renderChips(container, ids, ctx, { onRemove, onToggleMain, mainsSet = new Set(), showMain = false } = {}) {
   container.innerHTML = "";
   for (const id of ids) {
     const meta = ctx.champByRiotId(id);
     const name = meta ? meta.name : id;
     const slug = meta ? meta.slug : null;
+    const isMain = mainsSet.has(id);
     const chip = document.createElement("div");
-    chip.className = "chip" + (mainsSet.has(id) ? " main" : "");
-    chip.innerHTML = `<img src="${slug ? ctx.iconUrl(slug) : ""}" alt="" onerror="this.style.visibility='hidden'"/><span>${escapeHtml(name)}</span><span class="x">×</span>`;
-    chip.title = "Click to remove";
-    chip.addEventListener("click", () => onRemove?.(id));
+    chip.className = "chip" + (isMain ? " main" : "");
+    let html = `<img src="${slug ? ctx.iconUrl(slug) : ""}" alt="" onerror="this.style.visibility='hidden'"/><span class="chip-name">${escapeHtml(name)}</span>`;
+    if (showMain) {
+      html += `<button type="button" class="chip-star${isMain ? " on" : ""}" aria-pressed="${isMain}" title="${isMain ? "Main — you play this above average (+ buffer). Click to unset." : "Mark as a main (you play this better than the average sample)"}">★</button>`;
+    }
+    html += `<button type="button" class="chip-x" title="Remove from pool" aria-label="Remove ${escapeHtml(name)}">×</button>`;
+    chip.innerHTML = html;
+    chip.querySelector(".chip-x").addEventListener("click", (e) => { e.stopPropagation(); onRemove?.(id); });
+    if (showMain) {
+      chip.querySelector(".chip-star").addEventListener("click", (e) => { e.stopPropagation(); onToggleMain?.(id); });
+    }
     container.appendChild(chip);
   }
 }

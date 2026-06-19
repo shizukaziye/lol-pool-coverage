@@ -24,8 +24,6 @@ const els = {
   poolSearch: document.getElementById("pool-search"),
   poolResults: document.getElementById("pool-results"),
 
-  mainsList: document.getElementById("mains-list"),
-
   bannedChips: document.getElementById("banned-chips"),
   bannedSearch: document.getElementById("banned-search"),
   bannedResults: document.getElementById("banned-results"),
@@ -295,15 +293,16 @@ function renderAll() {
       state.mains = state.mains.filter((x) => x !== id);
       persist(); renderAll();
     },
+    onToggleMain: (id) => {
+      if (mainsSet.has(id)) state.mains = state.mains.filter((x) => x !== id);
+      else state.mains = [...state.mains, id];
+      persist(); renderAll();
+    },
     mainsSet,
+    showMain: true,
   });
   ui.renderChips(els.bannedChips, state.banned, c, {
     onRemove: (id) => { state.banned = state.banned.filter((x) => x !== id); persist(); renderAll(); },
-  });
-  ui.renderMains(els.mainsList, state.pool, mainsSet, c, (id) => {
-    if (mainsSet.has(id)) state.mains = state.mains.filter((x) => x !== id);
-    else state.mains = [...state.mains, id];
-    persist(); renderAll();
   });
 
   ui.renderWorst(els.worstTable, data, opts, c);

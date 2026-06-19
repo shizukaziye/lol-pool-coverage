@@ -185,36 +185,33 @@ body { min-height: 100vh; }
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.4em;
+  gap: 0.2em;
   background: var(--chip-bg);
   color: var(--text);
   border-radius: 100px;
-  padding: 0.22em 0.3em 0.22em 0.28em;
+  padding: 0.18em 0.28em 0.18em 0.32em;
   font-size: 0.85em;
-  cursor: pointer;
   border: 1px solid transparent;
   transition: background 0.15s, border-color 0.15s;
   user-select: none;
 }
-.chip:hover { background: var(--bg-elev2); border-color: var(--bad); }
-.chip:hover .x { background: var(--bad); color: #fff; }
 .chip.main { background: var(--chip-bg-main); border-color: var(--accent-2); }
-.chip.main:hover { border-color: var(--bad); }
 .chip img { width: 20px; height: 20px; border-radius: 50%; flex: 0 0 auto; background: var(--bg-elev2); }
-.chip > span:not(.x) { padding: 0 0.1em; }
-.chip .x {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.35em;
-  height: 1.35em;
-  border-radius: 50%;
-  color: var(--text-dim);
-  font-weight: bold;
-  line-height: 1;
-  font-size: 0.95em;
-  transition: background 0.15s, color 0.15s;
+.chip .chip-name { padding: 0 0.15em; white-space: nowrap; }
+.chip-star, .chip-x {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.5em; height: 1.5em; border-radius: 50%;
+  border: none; background: transparent; cursor: pointer; padding: 0;
+  line-height: 1; font-size: 0.95em; transition: background 0.12s, color 0.12s;
 }
+.chip-star { color: var(--text-dim); }
+.chip-star:hover, .chip-star:focus-visible { color: var(--accent-2); background: rgba(125,109,240,0.18); outline: none; }
+.chip-star.on { color: #f5c542; }            /* gold star = main */
+.chip-star.on:hover { background: rgba(245,197,66,0.16); }
+.chip-x { color: var(--text-dim); font-weight: bold; }
+.chip-x:hover, .chip-x:focus-visible { color: #fff; background: var(--bad); outline: none; }
+.hint-star { color: #f5c542; }
+.hint-x { color: var(--text-dim); font-weight: bold; }
 
 /* ----- Search + dropdown ----- */
 .search-wrap { position: relative; }

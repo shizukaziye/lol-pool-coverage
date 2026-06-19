@@ -134,7 +134,7 @@
         <button type="button" class="btn btn-primary" id="load-example">Load example pool</button>
       </div>
       <div class="pool-actions">
-        <p class="hint">Click a chip to remove. Toggle <em>Main</em> in Settings for the +1 buffer.</p>
+        <p class="hint">Tap <span class="hint-star">★</span> on a champion to mark it a <em>main</em> (you play it better than average — it gets the +Δ2 buffer). Tap <span class="hint-x">×</span> to remove it.</p>
         <button type="button" class="btn btn-subtle" id="clear-pool" hidden>Clear pool</button>
       </div>
     </section>
@@ -144,12 +144,7 @@
       <h2>Settings</h2>
 
       <div class="setting">
-        <label>Mains <small>(champions you play above average)</small></label>
-        <div class="mains-list" id="mains-list"></div>
-      </div>
-
-      <div class="setting">
-        <label for="main-buf">Main Δ2 buffer: <span id="main-buf-val">1.0</span></label>
+        <label for="main-buf">Main <span class="hint-star">★</span> Δ2 buffer: <span id="main-buf-val">1.0</span></label>
         <input type="range" id="main-buf" min="0" max="3" step="0.1" value="1.0" />
         <p class="hint">Extra Δ2 your mains get for playing them better than the average sample. Set to 0 to turn the bonus off.</p>
       </div>
