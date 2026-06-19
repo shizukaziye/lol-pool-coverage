@@ -82,6 +82,48 @@ usage[P] = BLIND_RATE       * (1 if P == best_blind else 0)
         + (1 - BLIND_RATE)  * counter_share[P]
 ```
 
+## Cross-role matchups (5v5)
+
+`d2(P, C)` is role-aware: `weighted.matchups[P][role][C].d2`, where `role` is the
+**enemy's** role and defaults to `LANE` (the same-lane matchup, so every formula
+above is unchanged when cross-role is off). A pool champ also has matchup tables
+vs enemies in the four other roles — e.g. a top laner's win-rate delta vs each
+enemy jungler.
+
+### Threat pool
+
+`THREAT_POOL` generalizes `COUNTER_POOL`: each threat is `{ id, role, prc }`.
+Same-lane threats (role = `LANE`) come from this lane's tierlist; opted-in extra
+roles' threats come from `data/rosters.json` (`{ role: { rid: pr } }`). With no
+extra roles it is exactly `COUNTER_POOL` tagged with `LANE`. **Pool analysis**
+allows at most one extra role (2 total); worst-matchups / best-adds / cut / blind
+all iterate `THREAT_POOL`, so the second role's champs become additional threats
+weighted by their own pickrate. For best-adds, a cross-role threat isn't a
+subject in this lane's file, so the "counter vs candidate" Δ2 is taken from the
+candidate's own (inverted) matchup instead.
+
+### Combining roles — the "best overall pick" (draft)
+
+The **draft assistant** lets you fill an enemy per role (up to all five) and ranks
+your pool by an effective Δ2 that combines the per-role matchups by **adding
+log-odds** (≡ multiplying odds), which is the principled way to fuse independent
+probabilistic edges:
+
+```
+for each filled enemy role r with your champ P:
+    p_r   = clamp(0.5 + d2(P, enemy_r, r) / 100, 0.02, 0.98)   # matchup win prob
+L          = sum over r of ln( p_r / (1 - p_r) )               # add log-odds
+if P is a main: L += ln( (0.5+BUF/100) / (0.5-BUF/100) )       # buffer = one more edge
+winProb    = 1 / (1 + e^(-L))                                  # sigmoid back
+eff_d2     = (winProb - 0.5) * 100                             # display, same units
+```
+
+Properties (verified in fixtures): even matchups stay even (`50% & 50% → 50%`), a
+favored + an equally-unfavored matchup cancel (`40% & 60% → 50%`), advantages
+compound but saturate below 100% (`90% & 90% → 98.8%`), and because off-role Δ2
+are naturally ~5× smaller than the lane, the lane dominates without any manual
+weighting. Pool members with no data vs any filled slot sort last.
+
 ## Fixtures
 
 The scraper repo should include a tiny golden-data fixture (3 champions, 1 lane, hand-computed expected outputs) that both Python tests and JS tests can run against, to confirm both implementations agree numerically.

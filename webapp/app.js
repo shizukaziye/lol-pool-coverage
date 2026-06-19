@@ -12,7 +12,8 @@ const DEFAULT_STATE = () => ({
   minPr: 1.5,
   minGames: 100,
   mainBuf: 1.0,
-  draftEnemy: null,   // riot id of the enemy laner selected in Draft mode
+  extraRole: null,    // pool analysis: one extra enemy role to weigh (2 roles max)
+  draftEnemies: {},   // draft mode: { role: enemy riot id } across up to 5 roles
 });
 
 const els = {
@@ -37,6 +38,9 @@ const els = {
   mainBuf: document.getElementById("main-buf"),
   mainBufVal: document.getElementById("main-buf-val"),
 
+  xroleBar: document.getElementById("xrole-bar"),
+  xroleOpts: document.getElementById("xrole-opts"),
+
   worstTable: document.getElementById("worst-table"),
   addsTable: document.getElementById("adds-table"),
   cutTable: document.getElementById("cut-table"),
@@ -57,7 +61,8 @@ const els = {
   draftView: document.getElementById("draft-view"),
   draftEmpty: document.getElementById("draft-empty"),
   draftCols: document.getElementById("draft-cols"),
-  enemyLaneLabel: document.getElementById("enemy-lane-label"),
+  enemySlots: document.getElementById("enemy-slots"),
+  enemyPickerLabel: document.getElementById("enemy-picker-label"),
   enemySearch: document.getElementById("enemy-search"),
   enemyClear: document.getElementById("enemy-clear"),
   enemyGrid: document.getElementById("enemy-grid"),
@@ -133,8 +138,22 @@ function iconUrl(slug) {
 let lane = store.loadLane();
 if (!LANES.includes(lane)) lane = "top";
 
-let state = store.loadState(lane) || DEFAULT_STATE();
+// Fill in fields added after a user's saved state was written (and migrate the
+// old single-enemy draft field into the per-role map).
+function normalizeState(s) {
+  if (!s || typeof s !== "object") return DEFAULT_STATE();
+  if (!s.draftEnemies || typeof s.draftEnemies !== "object") s.draftEnemies = {};
+  if (s.draftEnemy) { s.draftEnemies[lane] = s.draftEnemy; delete s.draftEnemy; }
+  if (s.extraRole === undefined) s.extraRole = null;
+  return s;
+}
+
+let state = normalizeState(store.loadState(lane)) || DEFAULT_STATE();
 let data = null;            // current weighted/{lane}.json
+let rosters = null;         // data/rosters.json: { role: { rid: pr } } for all lanes
+// Which enemy role's picker is shown in Draft mode (defaults to your lane).
+// Not persisted — purely a UI focus.
+let focusedRole = lane;
 let dataSource = "none";    // "weighted" | "fixture" | "none" — drives empty-state copy
 let patchesReg = null;      // parsed data/patches.json (patch registry w/ k_back)
 let mode = "analyze";       // "analyze" | "draft"
@@ -268,8 +287,27 @@ function buildOpts() {
     minPr: state.minPr,
     minGames: state.minGames,
     topContributors: 6,
+    // Pool analysis: at most one extra enemy role (2 roles total). Only honor it
+    // when we actually have that role's roster loaded.
+    extraRoles: state.extraRole && rosters?.rosters?.[state.extraRole] ? [state.extraRole] : [],
   };
 }
+
+// rosters.json gives every lane's champ list (rid -> pr) for the cross-role
+// enemy pickers and threat weighting. Optional — cross-role just stays off if
+// it's missing.
+async function loadRosters() {
+  try {
+    const r = await fetch("../data/rosters.json");
+    if (!r.ok) throw new Error(String(r.status));
+    rosters = await r.json();
+  } catch (e) {
+    console.warn("rosters.json fetch failed; cross-role disabled", e);
+    rosters = null;
+  }
+}
+
+function rostersByRole() { return rosters?.rosters || null; }
 
 function renderAll() {
   renderDataNotice();
@@ -306,24 +344,39 @@ function renderAll() {
     onRemove: (id) => { state.banned = state.banned.filter((x) => x !== id); persist(); renderAll(); },
   });
 
-  ui.renderWorst(els.worstTable, data, opts, c);
+  renderXroleBar();
+  const rb = rostersByRole();
+  ui.renderWorst(els.worstTable, data, opts, c, rb);
   ui.renderAdds(els.addsTable, data, opts, c, (id) => {
     if (!state.pool.includes(String(id))) state.pool = [...state.pool, String(id)];
     persist(); renderAll();
-  });
-  ui.renderCut(els.cutTable, els.cutHint, data, opts, c);
-  ui.renderBlind(els.blindTable, data, opts, c);
+  }, rb);
+  ui.renderCut(els.cutTable, els.cutHint, data, opts, c, rb);
+  ui.renderBlind(els.blindTable, data, opts, c, rb);
   ui.renderBlindPicks(els.blindPicksTable, data, opts, c, (id) => {
     if (!state.pool.includes(String(id))) state.pool = [...state.pool, String(id)];
     persist(); renderAll();
-  });
-  ui.renderUsage(els.usageBars, data, opts, c);
+  }, rb);
+  ui.renderUsage(els.usageBars, data, opts, c, rb);
   renderDraft(c, opts);
 }
 
-// ---------- Draft assistant ----------
+// Cross-role control bar (pool analysis): your lane is always on; the user may
+// add ONE other role, whose meta champs then join the threat lists. Rendered
+// here (not static HTML) because the four options depend on the current lane.
+const ROLE_LABEL = { top: "Top", jungle: "Jungle", middle: "Mid", bottom: "Bot", support: "Support" };
+function renderXroleBar() {
+  if (!els.xroleOpts) return;
+  const haveRosters = !!rostersByRole();
+  if (els.xroleBar) els.xroleBar.hidden = !haveRosters;
+  if (!haveRosters) return;
+  const others = LANES.filter((r) => r !== lane);
+  els.xroleOpts.innerHTML = others
+    .map((r) => `<button type="button" class="xrole-opt${state.extraRole === r ? " on" : ""}" data-role="${r}" aria-pressed="${state.extraRole === r}">+ ${ROLE_LABEL[r]}</button>`)
+    .join("");
+}
 
-const LANE_LABEL = { top: "top", jungle: "jungle", middle: "mid", bottom: "bot", support: "support" };
+// ---------- Draft assistant ----------
 
 function setMode(newMode) {
   mode = newMode === "draft" ? "draft" : "analyze";
@@ -339,17 +392,25 @@ function setMode(newMode) {
   if (els.draftView) els.draftView.hidden = mode !== "draft";
 }
 
+// Champ ids to offer in the picker for a given enemy role: your own lane comes
+// from this lane's tierlist (full data); other roles come from rosters[role].
+function roleChampions(role) {
+  if (role === lane) return ctx().allChampions().map((x) => x.riot_id);
+  const roster = rostersByRole()?.[role] || {};
+  return Object.entries(roster).sort((a, b) => b[1] - a[1]).map(([id]) => id);
+}
+
 function renderDraft(c, opts) {
   if (!els.draftView) return;
-  if (els.enemyLaneLabel) els.enemyLaneLabel.textContent = LANE_LABEL[lane] || lane;
   const poolEmpty = !data || state.pool.length === 0;
   if (els.draftEmpty) els.draftEmpty.hidden = !poolEmpty;
   if (els.draftCols) els.draftCols.hidden = poolEmpty;
   if (poolEmpty) return;
-  const laneIds = c.allChampions().map((x) => x.riot_id);
-  ui.renderEnemyGrid(els.enemyGrid, laneIds, c, state.draftEnemy, els.enemySearch ? els.enemySearch.value : "");
-  if (els.enemyClear) els.enemyClear.hidden = !state.draftEnemy;
-  ui.renderReco(els, data, opts, c, state.draftEnemy);
+  ui.renderEnemySlots(els.enemySlots, state.draftEnemies, focusedRole, lane, c, ROLE_LABEL);
+  if (els.enemyPickerLabel) els.enemyPickerLabel.textContent = ROLE_LABEL[focusedRole] || focusedRole;
+  ui.renderEnemyGrid(els.enemyGrid, roleChampions(focusedRole), c, state.draftEnemies[focusedRole], els.enemySearch ? els.enemySearch.value : "");
+  if (els.enemyClear) els.enemyClear.hidden = !state.draftEnemies[focusedRole];
+  ui.renderReco(els, data, opts, c, state.draftEnemies, rostersByRole());
 }
 
 function refreshDraft() { renderDraft(ctx(), buildOpts()); }
@@ -362,12 +423,26 @@ function wireDraft() {
     if (mode === "draft") refreshDraft();
   });
   els.enemySearch?.addEventListener("input", () => {
-    const c = ctx();
-    ui.renderEnemyGrid(els.enemyGrid, c.allChampions().map((x) => x.riot_id), c, state.draftEnemy, els.enemySearch.value);
+    ui.renderEnemyGrid(els.enemyGrid, roleChampions(focusedRole), ctx(), state.draftEnemies[focusedRole], els.enemySearch.value);
+  });
+  // Enemy-team slots: click a slot to focus its role's picker; the × clears it.
+  els.enemySlots?.addEventListener("click", (e) => {
+    const clear = e.target.closest(".slot-clear");
+    if (clear) {
+      const role = clear.closest(".enemy-slot")?.dataset.role;
+      if (role) { delete state.draftEnemies[role]; persist(); refreshDraft(); }
+      return;
+    }
+    const slot = e.target.closest(".enemy-slot");
+    if (slot && slot.dataset.role) {
+      focusedRole = slot.dataset.role;
+      if (els.enemySearch) els.enemySearch.value = "";
+      refreshDraft();
+    }
   });
   const pickEnemy = (tile) => {
     if (!tile) return;
-    state.draftEnemy = tile.dataset.id;
+    state.draftEnemies[focusedRole] = tile.dataset.id;
     persist();
     refreshDraft();
   };
@@ -378,7 +453,17 @@ function wireDraft() {
     pickEnemy(e.target.closest(".champ-tile"));
   });
   els.enemyClear?.addEventListener("click", () => {
-    state.draftEnemy = null; persist(); refreshDraft();
+    delete state.draftEnemies[focusedRole]; persist(); refreshDraft();
+  });
+}
+
+function wireXroleBar() {
+  els.xroleOpts?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".xrole-opt");
+    if (!btn) return;
+    const role = btn.dataset.role;
+    state.extraRole = state.extraRole === role ? null : role;
+    persist(); renderAll();
   });
 }
 
@@ -400,7 +485,9 @@ function wireLaneTabs() {
       lane = btn.dataset.lane;
       store.saveLane(lane);
       setActiveTab(lane);
-      state = store.loadState(lane) || DEFAULT_STATE();
+      state = normalizeState(store.loadState(lane)) || DEFAULT_STATE();
+      if (state.extraRole === lane) state.extraRole = null;
+      focusedRole = lane;
       syncSettingsControls();
       data = await loadLaneData();
       attachSearches();
@@ -556,6 +643,7 @@ function renderPatchBlend() {
   await fetchDDragonChampions();
   champs = await loadChampions();
   await loadPatchesRegistry();
+  await loadRosters();
   data = await loadLaneData();
   if (data && !champs) champs = synthesizeChampions(data);
   // If we have lane data but champion meta is incomplete, fill from synthesizer.
@@ -571,6 +659,7 @@ function renderPatchBlend() {
   wireSettings();
   wirePoolControls();
   wireDraft();
+  wireXroleBar();
   attachSearches();
   setMode(mode);        // apply initial view visibility
   renderAll();

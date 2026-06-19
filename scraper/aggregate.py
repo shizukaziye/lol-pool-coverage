@@ -34,7 +34,7 @@ WEIGHTED_DIR = DATA_DIR / "weighted"
 PATCHES_FILE = DATA_DIR / "patches.json"
 
 LANES = ["top", "jungle", "middle", "bottom", "support"]
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2  # v2: weighted matchups nested by enemy role [subject][role][opponent]
 WEIGHT_BASE = 0.85
 MAX_K_BACK = 20  # exclusive upper bound
 
@@ -68,10 +68,10 @@ def aggregate_lane(lane: str, patches: list[dict]) -> dict:
     wr_den: dict[str, float] = {}
     games_total: dict[str, int] = {}
 
-    # matchup-level accumulators
-    mu_num: dict[str, dict[str, float]] = {}
-    mu_den: dict[str, dict[str, float]] = {}
-    mu_games_total: dict[str, dict[str, int]] = {}
+    # matchup-level accumulators, nested by enemy role: [subject][role][opponent]
+    mu_num: dict[str, dict[str, dict[str, float]]] = {}
+    mu_den: dict[str, dict[str, dict[str, float]]] = {}
+    mu_games_total: dict[str, dict[str, dict[str, int]]] = {}
 
     source_patches: list[str] = []
 
@@ -113,19 +113,23 @@ def aggregate_lane(lane: str, patches: list[dict]) -> dict:
                     wr_den[rid] = wr_den.get(rid, 0.0) + lane_total_w
             games_total[rid] = games_total.get(rid, 0) + int(games)
 
-        for subj_rid, opp_map in matchups.items():
+        for subj_rid, role_map in matchups.items():
             sub_num = mu_num.setdefault(subj_rid, {})
             sub_den = mu_den.setdefault(subj_rid, {})
             sub_gt = mu_games_total.setdefault(subj_rid, {})
-            for opp_rid, mu in opp_map.items():
-                g = mu.get("games")
-                d2 = mu.get("d2")
-                if g is None or g <= 0 or d2 is None:
-                    continue
-                gw = g * w
-                sub_num[opp_rid] = sub_num.get(opp_rid, 0.0) + d2 * gw
-                sub_den[opp_rid] = sub_den.get(opp_rid, 0.0) + gw
-                sub_gt[opp_rid] = sub_gt.get(opp_rid, 0) + int(g)
+            for role, opp_map in role_map.items():
+                r_num = sub_num.setdefault(role, {})
+                r_den = sub_den.setdefault(role, {})
+                r_gt = sub_gt.setdefault(role, {})
+                for opp_rid, mu in opp_map.items():
+                    g = mu.get("games")
+                    d2 = mu.get("d2")
+                    if g is None or g <= 0 or d2 is None:
+                        continue
+                    gw = g * w
+                    r_num[opp_rid] = r_num.get(opp_rid, 0.0) + d2 * gw
+                    r_den[opp_rid] = r_den.get(opp_rid, 0.0) + gw
+                    r_gt[opp_rid] = r_gt.get(opp_rid, 0) + int(g)
 
     # Materialize.
     tier_out: dict[str, dict] = {}
@@ -140,13 +144,14 @@ def aggregate_lane(lane: str, patches: list[dict]) -> dict:
 
     mu_out: dict[str, dict[str, dict]] = {}
     for subj_rid, sub_den in mu_den.items():
-        for opp_rid, den in sub_den.items():
-            if den <= 0:
-                continue
-            mu_out.setdefault(subj_rid, {})[opp_rid] = {
-                "d2": round(mu_num[subj_rid][opp_rid] / den, 4),
-                "games_total": int(mu_games_total[subj_rid][opp_rid]),
-            }
+        for role, r_den in sub_den.items():
+            for opp_rid, den in r_den.items():
+                if den <= 0:
+                    continue
+                mu_out.setdefault(subj_rid, {}).setdefault(role, {})[opp_rid] = {
+                    "d2": round(mu_num[subj_rid][role][opp_rid] / den, 4),
+                    "games_total": int(mu_games_total[subj_rid][role][opp_rid]),
+                }
 
     return {
         "schema_version": SCHEMA_VERSION,
@@ -166,10 +171,15 @@ def run(lanes: Iterable[str] | None = None) -> None:
         return
 
     WEIGHTED_DIR.mkdir(parents=True, exist_ok=True)
+    rosters: dict[str, dict[str, float]] = {}
     for lane in lanes or LANES:
         out = aggregate_lane(lane, patches)
         out_path = WEIGHTED_DIR / f"{lane}.json"
         out_path.write_text(json.dumps(out, indent=2, sort_keys=True))
+        # Compact per-lane roster (rid -> pr) for the cross-role enemy pickers and
+        # cross-role threat weighting — so the webapp gets every lane's champ list
+        # without loading all five weighted files.
+        rosters[lane] = {rid: row["pr"] for rid, row in out["tierlist"].items()}
         log.info(
             "Wrote %s (%d champs, %d subjects with matchups, %d source patches)",
             out_path,
@@ -177,6 +187,14 @@ def run(lanes: Iterable[str] | None = None) -> None:
             len(out["matchups"]),
             len(out["source_patches"]),
         )
+
+    # Only write the combined roster index when aggregating all lanes, so a
+    # single-lane run doesn't clobber it with a partial index.
+    if lanes is None or set(lanes) == set(LANES):
+        roster_path = DATA_DIR / "rosters.json"
+        roster_path.write_text(json.dumps(
+            {"schema_version": SCHEMA_VERSION, "rosters": rosters}, sort_keys=True))
+        log.info("Wrote %s (%d lanes)", roster_path, len(rosters))
 
 
 if __name__ == "__main__":

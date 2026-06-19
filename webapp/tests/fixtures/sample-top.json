@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "lane": "top",
   "generated_at": "2026-06-19T08:30:00Z",
   "source_patches": ["15.11"],
@@ -11,22 +11,42 @@
   },
   "matchups": {
     "266": {
-      "17": { "d2": -2.0, "games_total": 1000 },
-      "67": { "d2":  1.0, "games_total": 1000 }
+      "top": {
+        "17": { "d2": -2.0, "games_total": 1000 },
+        "67": { "d2":  1.0, "games_total": 1000 }
+      },
+      "jungle": {
+        "64": { "d2": -3.0, "games_total": 1500 }
+      }
     },
     "86": {
-      "17": { "d2":  0.5, "games_total": 1000 },
-      "67": { "d2": -1.5, "games_total": 1000 }
+      "top": {
+        "17": { "d2":  0.5, "games_total": 1000 },
+        "67": { "d2": -1.5, "games_total": 1000 }
+      },
+      "jungle": {
+        "64": { "d2":  1.0, "games_total": 1500 }
+      }
     },
     "17": {
-      "266": { "d2":  2.0, "games_total": 1000 },
-      "86":  { "d2": -0.5, "games_total": 1000 },
-      "67":  { "d2": -1.0, "games_total":  800 }
+      "top": {
+        "266": { "d2":  2.0, "games_total": 1000 },
+        "86":  { "d2": -0.5, "games_total": 1000 },
+        "67":  { "d2": -1.0, "games_total":  800 }
+      },
+      "jungle": {
+        "64": { "d2":  0.5, "games_total": 1500 }
+      }
     },
     "67": {
-      "266": { "d2": -1.0, "games_total": 1000 },
-      "86":  { "d2":  1.5, "games_total": 1000 },
-      "17":  { "d2":  1.0, "games_total":  800 }
+      "top": {
+        "266": { "d2": -1.0, "games_total": 1000 },
+        "86":  { "d2":  1.5, "games_total": 1000 },
+        "17":  { "d2":  1.0, "games_total":  800 }
+      },
+      "jungle": {
+        "64": { "d2": -0.5, "games_total": 1500 }
+      }
     }
   }
 }

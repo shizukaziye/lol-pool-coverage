@@ -176,6 +176,15 @@
       </div>
     </section>
 
+    <!-- Cross-role threats opt-in (affects every panel below) -->
+    <div class="xrole-bar wide" id="xrole-bar" hidden>
+      <div class="xrole-text">
+        <strong>Also weigh threats from another role?</strong>
+        <span class="xrole-hint">By default only your own lane's meta picks count as threats. Add one enemy role and its champions join every list below (2 roles max).</span>
+      </div>
+      <div class="xrole-opts" id="xrole-opts"></div>
+    </div>
+
     <!-- Worst matchups -->
     <section class="panel wide" id="worst-panel">
       <h2>Worst pool matchups</h2>
@@ -235,11 +244,14 @@
       </section>
       <!-- Enemy picker column -->
       <section class="draft-enemy panel">
-        <h2>Enemy <span id="enemy-lane-label">top</span> laner</h2>
+        <h2>Enemy team</h2>
+        <p class="panel-desc">Fill in any enemies you know — pick a role slot, then choose the champion. Your pick is ranked across every slot you fill.</p>
+        <div class="enemy-slots" id="enemy-slots"></div>
         <div class="enemy-bar">
           <input type="text" id="enemy-search" class="enemy-search" placeholder="Search the enemy champion…" autocomplete="off" />
-          <button type="button" class="btn btn-subtle" id="enemy-clear" hidden>Clear</button>
+          <button type="button" class="btn btn-subtle" id="enemy-clear" hidden>Clear slot</button>
         </div>
+        <p class="enemy-picker-label-row">Choosing enemy <strong id="enemy-picker-label">top</strong></p>
         <div class="champ-grid enemy-grid" id="enemy-grid"></div>
       </section>
     </div>

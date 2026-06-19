@@ -19,6 +19,7 @@
 import {
   poolD2, worstMatchups, candidateScores, cutAnalysis,
   blindScores, usageSimulation, counterPool, DEFAULTS,
+  combineDeltas, draftPicks, threatPool,
 } from "../scoring.js";
 
 const out = document.getElementById("out");
@@ -122,6 +123,32 @@ assertEq("usage Aatrox counterShare", uByP["266"].counterShare, 0.4);
 assertEq("usage Garen", uByP["86"].usage, 0.76, 1e-12);
 // usage(Aatrox) = 0.4*0 + 0.6*0.4 = 0.24
 assertEq("usage Aatrox", uByP["266"].usage, 0.24, 1e-12);
+
+// ---- Cross-role combine (log-odds) ----
+assertEq("combine [] -> eff 0", combineDeltas([]).eff, 0);
+assertEq("combine 60&60 -> ~69.2%", combineDeltas([10, 10]).winProb, 0.6923, 1e-3);
+assertEq("combine 40&60 -> 50%", combineDeltas([-10, 10]).winProb, 0.5);
+assertEq("combine 90&90 -> ~98.8%", combineDeltas([40, 40]).winProb, 0.9878, 1e-3);
+
+// ---- Draft picks: single (back-compat) and multi-role ----
+assertEq("draft single (vs Teemo) best", draftPicks(data, opts, "17").best, "86");
+const dpMulti = draftPicks(data, opts, { top: "17", jungle: "64" });
+assertEq("draft multi best (Garen favored both)", dpMulti.best, "86");
+assertEq("draft multi rolesUsed", dpMulti.rolesUsed.slice().sort(), ["jungle", "top"]);
+const garenRow = dpMulti.rows.find((r) => r.p === "86");
+assertEq("draft Garen perRole count", garenRow.perRole.length, 2);
+assertEq("draft Garen favored (eff>0)", garenRow.eff > 0, true);
+
+// ---- Cross-role pool analysis (2nd role: jungle) ----
+const rosters = { jungle: { "64": 5.0 } };
+const w2 = worstMatchups(data, { ...opts, extraRoles: ["jungle"] }, rosters);
+const jungleRow = w2.find((r) => r.role === "jungle" && r.counter === "64");
+assertEq("worst includes jungle threat 64", !!jungleRow, true);
+// pool best vs jungle 64 = max(Aatrox -3.0, Garen +1.0) = +1.0 by Garen
+assertEq("worst jungle value", jungleRow.value, 1.0);
+assertEq("worst jungle by", jungleRow.by, "86");
+// With no extraRoles, threat pool == same-lane counter pool
+assertEq("threatPool no-extra == counterPool", threatPool(data, null, opts).map((t) => t.id).sort(), ["17", "67"]);
 
 // ---- Summary ----
 log("", "info");

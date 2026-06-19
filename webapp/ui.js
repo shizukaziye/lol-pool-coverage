@@ -26,6 +26,14 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+const ROLE_ABBR = { top: "TOP", jungle: "JNG", middle: "MID", bottom: "BOT", support: "SUP" };
+const ROLE_FULL = { top: "Top", jungle: "Jungle", middle: "Mid", bottom: "Bot", support: "Support" };
+// A small pill marking a cross-role (off-lane) threat; nothing for same-lane.
+function roleBadge(role, lane) {
+  if (!role || role === lane) return "";
+  return ` <span class="role-badge" title="Enemy ${escapeHtml(ROLE_FULL[role] || role)}">${ROLE_ABBR[role] || role}</span>`;
+}
+
 // ---------------- Chip inputs ----------------
 
 export function renderChips(container, ids, ctx, { onRemove, onToggleMain, mainsSet = new Set(), showMain = false } = {}) {
@@ -119,18 +127,18 @@ export function renderMains(container, pool, mainsSet, ctx, onToggle) {
 
 // ---------------- Analysis panels ----------------
 
-export function renderWorst(table, data, opts, ctx) {
-  const rows = worstMatchups(data, opts).slice(0, 15);
+export function renderWorst(table, data, opts, ctx, rosters = null) {
+  const rows = worstMatchups(data, opts, rosters).slice(0, 15);
   if (rows.length === 0) {
     table.innerHTML = `<tbody><tr><td class="empty-state">Add pool champions to see worst matchups.</td></tr></tbody>`;
     return;
   }
   const pool = opts.pool;
-  let html = `<thead><tr><th title="A popular meta pick in this lane that you draft against.">Counter</th><th class="num" title="Pickrate: how often this champion is played in this lane.">PR%</th><th title="Your best answer in the pool to this threat (mains get the +1 buffer). The Δ2 columns show each champ's matchup.">Best answer</th>`;
+  let html = `<thead><tr><th title="A popular meta pick you draft against. A role pill (e.g. JNG) marks an enemy from another lane.">Counter</th><th class="num" title="Pickrate: how often this champion is played in its lane.">PR%</th><th title="Your best answer in the pool to this threat (mains get the +1 buffer). The Δ2 columns show each champ's matchup.">Best answer</th>`;
   for (const p of pool) html += `<th>${champCell(p, ctx)}</th>`;
   html += `</tr></thead><tbody>`;
   for (const r of rows) {
-    html += `<tr><td>${champCell(r.counter, ctx)}</td><td class="num">${fmt(r.pr, 2)}</td><td>${r.by ? champCell(r.by, ctx) : "—"}</td>`;
+    html += `<tr><td>${champCell(r.counter, ctx)}${roleBadge(r.role, data.lane)}</td><td class="num">${fmt(r.pr, 2)}</td><td>${r.by ? champCell(r.by, ctx) : "—"}</td>`;
     const byMap = new Map(r.breakdown.map((b) => [b.p, b]));
     for (const p of pool) {
       const b = byMap.get(p);
@@ -142,8 +150,8 @@ export function renderWorst(table, data, opts, ctx) {
   table.innerHTML = html;
 }
 
-export function renderAdds(table, data, opts, ctx, onAdd) {
-  const rows = candidateScores(data, opts).slice(0, 25);
+export function renderAdds(table, data, opts, ctx, onAdd, rosters = null) {
+  const rows = candidateScores(data, opts, rosters).slice(0, 25);
   if (rows.length === 0 || rows.every((r) => r.score === 0)) {
     table.innerHTML = `<tbody><tr><td class="empty-state">No candidates score above 0 — either your pool covers everything or there's no data.</td></tr></tbody>`;
     return;
@@ -161,7 +169,7 @@ export function renderAdds(table, data, opts, ctx, onAdd) {
       const d2str = dv == null ? "—" : `${dv >= 0 ? "+" : ""}${fmt(dv, 1)}`;
       const d2cls = dv == null ? "" : (dv >= 0 ? "pos" : "neg");
       const prStr = c.counterPr == null ? "" : `${fmt(c.counterPr, 1)}%`;
-      return `<span class="c-item">${champCell(c.counter, ctx)}<span class="c-meta"><span class="c-d2 ${d2cls}">${d2str}</span><span class="c-pr">${prStr}</span></span></span>`;
+      return `<span class="c-item">${champCell(c.counter, ctx)}${roleBadge(c.role, data.lane)}<span class="c-meta"><span class="c-d2 ${d2cls}">${d2str}</span><span class="c-pr">${prStr}</span></span></span>`;
     });
     // Pad to a fixed slot count so the grid columns align across every row.
     while (cells.length < slots) cells.push(`<span class="c-item c-empty"></span>`);
@@ -177,8 +185,8 @@ export function renderAdds(table, data, opts, ctx, onAdd) {
   }
 }
 
-export function renderCut(table, hint, data, opts, ctx) {
-  const rows = cutAnalysis(data, opts);
+export function renderCut(table, hint, data, opts, ctx, rosters = null) {
+  const rows = cutAnalysis(data, opts, rosters);
   if (rows.length === 0) {
     table.innerHTML = `<tbody><tr><td class="empty-state">Add pool champions to see cut analysis.</td></tr></tbody>`;
     hint.textContent = "";
@@ -216,8 +224,8 @@ export function renderCut(table, hint, data, opts, ctx) {
   } else hint.textContent = "";
 }
 
-export function renderBlind(table, data, opts, ctx) {
-  const rows = blindScores(data, opts);
+export function renderBlind(table, data, opts, ctx, rosters = null) {
+  const rows = blindScores(data, opts, rosters);
   if (rows.length === 0) {
     table.innerHTML = `<tbody><tr><td class="empty-state">Add pool champions to see blind safety.</td></tr></tbody>`;
     return;
@@ -231,8 +239,8 @@ export function renderBlind(table, data, opts, ctx) {
 }
 
 // Best blind picks in the lane you don't play yet — click one to add it.
-export function renderBlindPicks(table, data, opts, ctx, onAdd) {
-  const rows = blindCandidates(data, opts).slice(0, 20);
+export function renderBlindPicks(table, data, opts, ctx, onAdd, rosters = null) {
+  const rows = blindCandidates(data, opts, rosters).slice(0, 20);
   if (rows.length === 0) {
     table.innerHTML = `<tbody><tr><td class="empty-state">No data for this lane yet.</td></tr></tbody>`;
     return;
@@ -252,8 +260,8 @@ export function renderBlindPicks(table, data, opts, ctx, onAdd) {
   }
 }
 
-export function renderUsage(container, data, opts, ctx) {
-  const rows = usageSimulation(data, opts);
+export function renderUsage(container, data, opts, ctx, rosters = null) {
+  const rows = usageSimulation(data, opts, rosters);
   if (rows.length === 0) {
     container.innerHTML = `<div class="empty-state">Add pool champions to see usage simulation.</div>`;
     return;
@@ -295,7 +303,38 @@ export function champTile(id, ctx, o = {}) {
     else d2badge = `<span class="tile-d2 ${o.d2 >= 0 ? "pos" : "neg"}">${o.d2 >= 0 ? "+" : ""}${Number(o.d2).toFixed(2)}</span>`;
   }
   const star = o.isMain ? ` <span class="star" title="Main (+1 buffer)">★</span>` : "";
-  return `<div class="${cls}" data-id="${id}" role="button" tabindex="0" title="${escapeHtml(name)}">${tag}${d2badge}<img src="${url}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"/><span class="tile-name">${escapeHtml(name)}${star}</span></div>`;
+  const win = (o.winPct != null)
+    ? `<span class="tile-win" title="Estimated win rate into the enemies you've picked">≈${Math.round(o.winPct)}%</span>`
+    : "";
+  return `<div class="${cls}" data-id="${id}" role="button" tabindex="0" title="${escapeHtml(name)}">${tag}${d2badge}<img src="${url}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"/><span class="tile-name">${escapeHtml(name)}${star}</span>${win}</div>`;
+}
+
+// The five enemy-team slots in Draft mode. One per role; your own lane is
+// marked. A filled slot shows the champ (click × to clear); an empty slot shows
+// a "+ role" placeholder. Clicking a slot focuses that role's picker.
+const SLOT_ORDER = ["top", "jungle", "middle", "bottom", "support"];
+export function renderEnemySlots(container, enemies, focusedRole, yourLane, ctx, roleLabel) {
+  if (!container) return;
+  container.innerHTML = SLOT_ORDER.map((role) => {
+    const id = enemies[role];
+    const meta = id ? ctx.champByRiotId(id) : null;
+    const label = (roleLabel && roleLabel[role]) || role;
+    let cls = "enemy-slot";
+    if (role === focusedRole) cls += " focused";
+    if (role === yourLane) cls += " your-role";
+    if (id) cls += " filled";
+    const yours = role === yourLane ? `<span class="slot-you" title="Your lane">you</span>` : "";
+    let inner;
+    if (id) {
+      const url = meta && meta.slug ? ctx.iconUrl(meta.slug) : "";
+      inner = `<img src="${url}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"/>` +
+        `<button type="button" class="slot-clear" title="Clear ${escapeHtml(meta ? meta.name : id)}" aria-label="Clear">×</button>`;
+    } else {
+      inner = `<span class="slot-plus" aria-hidden="true">+</span>`;
+    }
+    return `<div class="${cls}" data-role="${role}" role="button" tabindex="0" title="Pick the enemy ${escapeHtml(label)}">` +
+      `<span class="slot-role">${escapeHtml(label)}${yours}</span>${inner}</div>`;
+  }).join("");
 }
 
 export function renderEnemyGrid(container, laneChampIds, ctx, selectedId, filterText) {
@@ -312,25 +351,27 @@ export function renderEnemyGrid(container, laneChampIds, ctx, selectedId, filter
   container.innerHTML = items.map((id) => champTile(id, ctx, { selected: String(id) === String(selectedId) })).join("");
 }
 
-// Render the recommendation column. If enemyId is set → rank pool vs that enemy;
-// otherwise → blind-safety ranking. Returns the recommended pick id (or null).
-export function renderReco(els, data, opts, ctx, enemyId) {
+// Render the recommendation column. `enemies` is a { role: enemyId } map. With
+// no enemies → blind-safety ranking; otherwise → rank the pool by the combined
+// (log-odds) effective Δ2 / win% across the filled roles. Returns the pick id.
+export function renderReco(els, data, opts, ctx, enemies, rosters = null) {
   const { recoGrid, recoTitle, recoDesc, draftFlag } = els;
   const nameOf = (id) => { const m = ctx.champByRiotId(id); return m ? m.name : id; };
   const mainSet = new Set((opts.mains || []).map(String));
   draftFlag.hidden = true;
   draftFlag.textContent = "";
 
-  if (!enemyId) {
+  const filled = SLOT_ORDER.filter((r) => enemies && enemies[r]);
+  if (filled.length === 0) {
     // Blind state.
-    const blinds = blindScores(data, opts);
+    const blinds = blindScores(data, opts, rosters);
     recoTitle.textContent = "Your blind pick";
     if (blinds.length === 0) {
       recoDesc.textContent = "Add champions to your pool to get a recommendation.";
       recoGrid.innerHTML = `<p class="reco-empty">No pool yet.</p>`;
       return null;
     }
-    recoDesc.innerHTML = `No enemy picked yet — your safest first-pick is <strong>${escapeHtml(nameOf(blinds[0].p))}</strong>. Click the enemy champion on the right to get a counter.`;
+    recoDesc.innerHTML = `No enemy picked yet — your safest first-pick is <strong>${escapeHtml(nameOf(blinds[0].p))}</strong>. Fill in the enemy team on the right (any roles you know) and your pick is ranked across all of them.`;
     recoGrid.innerHTML = blinds.map((b, i) => champTile(b.p, ctx, {
       tag: i === 0 ? "blind" : undefined,
       best: i === 0,
@@ -339,27 +380,35 @@ export function renderReco(els, data, opts, ctx, enemyId) {
     return blinds[0].p;
   }
 
-  // Counter state.
-  const res = draftPicks(data, opts, enemyId);
-  recoTitle.innerHTML = `Best pick vs ${escapeHtml(nameOf(enemyId))}`;
+  // Counter state — combine across the filled enemy roles.
+  const res = draftPicks(data, opts, enemies);
+  recoTitle.textContent = filled.length === 1
+    ? `Best pick vs ${nameOf(enemies[filled[0]])}`
+    : `Best overall pick vs ${filled.length} enemies`;
   if (!res.hasData) {
-    recoDesc.textContent = "No matchup data between your pool and this champion at the current sample threshold.";
+    recoDesc.textContent = "No matchup data between your pool and these enemies at the current sample threshold.";
     recoGrid.innerHTML = res.rows.map((r) => champTile(r.p, ctx, { d2: null, nodata: true, isMain: r.isMain })).join("");
     return null;
   }
-  const bestName = nameOf(res.best);
   const bestRow = res.rows.find((r) => String(r.p) === String(res.best));
-  recoDesc.innerHTML = `Pick <strong>${escapeHtml(bestName)}</strong> — Δ2 ${bestRow.raw >= 0 ? "+" : ""}${bestRow.raw.toFixed(2)} into ${escapeHtml(nameOf(enemyId))}.`;
+  const winPct = bestRow.winProb != null ? Math.round(bestRow.winProb * 100) : null;
+  const breakdown = bestRow.perRole
+    .map((x) => `<span class="bk-item">${escapeHtml(ROLE_FULL[x.role] || x.role)} vs ${escapeHtml(nameOf(x.opp))} <span class="${x.d2 >= 0 ? "pos" : "neg"}">${x.d2 >= 0 ? "+" : ""}${x.d2.toFixed(2)}</span></span>`)
+    .join("");
+  recoDesc.innerHTML = `Pick <strong>${escapeHtml(nameOf(res.best))}</strong> — ≈${winPct}% win` +
+    `${bestRow.eff != null ? `, effective Δ2 ${bestRow.eff >= 0 ? "+" : ""}${bestRow.eff.toFixed(2)}` : ""}. ` +
+    `<span class="reco-breakdown">${breakdown}</span>`;
   recoGrid.innerHTML = res.rows.map((r) => champTile(r.p, ctx, {
-    d2: r.raw,
-    nodata: r.raw == null,
-    best: String(r.p) === String(res.best) && r.raw != null,
-    tag: String(r.p) === String(res.best) && r.raw != null ? "best" : undefined,
+    d2: r.eff,
+    winPct: r.winProb != null ? r.winProb * 100 : null,
+    nodata: r.eff == null,
+    best: String(r.p) === String(res.best) && r.eff != null,
+    tag: String(r.p) === String(res.best) && r.eff != null ? "best" : undefined,
     isMain: r.isMain,
   })).join("");
   if (res.allLose) {
     draftFlag.hidden = false;
-    draftFlag.innerHTML = `⚠ Your whole pool is behind into <strong>${escapeHtml(nameOf(enemyId))}</strong>. <strong>${escapeHtml(bestName)}</strong> is the least-bad at Δ2 ${bestRow.raw.toFixed(2)} — consider a ban or a flex pick.`;
+    draftFlag.innerHTML = `⚠ Your whole pool is behind into this enemy setup. <strong>${escapeHtml(nameOf(res.best))}</strong> is the least-bad at ≈${winPct}% win — consider a ban or a flex pick.`;
   }
   return res.best;
 }

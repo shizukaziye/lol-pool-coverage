@@ -238,6 +238,73 @@ def parse_tierlist(blob: dict) -> dict:
     }
 
 
+ROLE_KEYS = ("top", "jungle", "middle", "bottom", "support")
+
+
+def _parse_matchup_list(lst: list, deref: Callable[[Any], Any]) -> list[dict]:
+    """Turn one raw matchup list (list of 6-tuples) into matchup dicts."""
+    out = []
+    for sub in lst:
+        sub_l = _resolve_list(sub, deref)
+        if sub_l is None or not _looks_like_champ_entry(sub_l, deref):
+            continue
+        rid = _resolve_rid(sub_l[0], deref)
+        wr = _resolve_num(sub_l[1], deref)
+        d1 = _resolve_num(sub_l[2], deref)
+        d2 = _resolve_num(sub_l[3], deref)
+        games = _resolve_num(sub_l[5], deref)
+        if rid is None or games is None:
+            continue
+        out.append({"riot_id": rid, "wr": wr, "d1": d1, "d2": d2, "games": int(games)})
+    return out
+
+
+def _find_role_container(objs: list, deref: Callable[[Any], Any]) -> Optional[dict]:
+    """Find the dict that maps {top,jungle,middle,bottom,support} -> matchup lists.
+
+    lolalytics nests the subject champ's five matchup tables (one per ENEMY role)
+    in a single role-keyed dict. We identify it by the five literal lane keys
+    whose values deref to champ-entry lists.
+    """
+    for d in objs:
+        if not isinstance(d, dict) or not all(k in d for k in ROLE_KEYS):
+            continue
+        ok = 0
+        for role in ROLE_KEYS:
+            lst = _resolve_list(d.get(role), deref)
+            if lst and 40 <= len(lst) <= 300:
+                first = _resolve_list(lst[0], deref)
+                if first is not None and _looks_like_champ_entry(first, deref):
+                    ok += 1
+        if ok >= 3:
+            return d
+    return None
+
+
+def parse_build_matchups_by_role(blob: dict) -> dict[str, list[dict]]:
+    """Return the subject champ's matchups against enemies in ALL five roles.
+
+    Returns { "top": [{riot_id, wr, d1, d2, games}, ...], "jungle": [...], ... }.
+    The subject's own lane key holds the same-lane matchups; the other four are
+    cross-role (e.g. a top laner's win-rate delta vs each enemy jungler). Roles
+    with no parseable list are omitted.
+    """
+    objs = blob["_objs"]
+    deref = make_deref(objs)
+    container = _find_role_container(objs, deref)
+    if container is None:
+        return {}
+    out: dict[str, list[dict]] = {}
+    for role in ROLE_KEYS:
+        lst = _resolve_list(container.get(role), deref)
+        if lst is None:
+            continue
+        parsed = _parse_matchup_list(lst, deref)
+        if parsed:
+            out[role] = parsed
+    return out
+
+
 def parse_build_matchups(blob: dict, lane_riot_ids: set[str]) -> list[dict]:
     """
     Find the matchup list whose entries' riot_ids best overlap the given

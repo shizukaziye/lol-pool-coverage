@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from qwik_parser import parse_build_matchups, parse_tierlist  # noqa: E402
+from qwik_parser import parse_build_matchups_by_role, parse_tierlist, ROLE_KEYS  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"
@@ -33,7 +33,7 @@ SNAP_DIR = DATA_DIR / "snapshots"
 CACHE_DIR = Path("/tmp/lolcache")  # raw-response cache so re-runs are instant/resumable
 
 LANES = ["top", "jungle", "middle", "bottom", "support"]
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2  # v2: snapshot matchups nested by enemy role [subject][role][opp]
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
 REQUEST_DELAY_S = 0.8
@@ -103,7 +103,26 @@ def detect_patch() -> str:
     raise RuntimeError("could not detect current patch from tierlist response")
 
 
-def scrape_lane(lane: str, patch: str, min_pr: float, champ_accum: dict) -> dict:
+def lane_qualified(lane: str, patch: str, min_pr: float, champ_accum: dict) -> set[str]:
+    """Fetch a lane's tierlist (cached) and return the PR-qualified rid set.
+    Used as a pre-pass so cross-role matchups can be filtered to the opponent
+    role's real champions. Also accumulates the champion registry."""
+    blob = fetch_json(tierlist_url(lane, patch), f"tier_{lane}", patch)
+    if blob is None:
+        return set()
+    parsed = parse_tierlist(blob)
+    for slug, rid, name in zip(parsed["champ_path"], parsed["champ_ids"], parsed["champ_names"]):
+        if rid and slug:
+            champ_accum.setdefault(rid, {"slug": slug, "name": name or slug})
+    qset = set()
+    for rid, row in zip(parsed["champ_ids"], parsed["tierlist"]):
+        pr = row.get("pr")
+        if rid and pr is not None and pr >= min_pr:
+            qset.add(rid)
+    return qset
+
+
+def scrape_lane(lane: str, patch: str, min_pr: float, champ_accum: dict, qualified_by_role: dict | None = None) -> dict:
     log.info("=== lane %s (patch %s) ===", lane, patch)
     blob = fetch_json(tierlist_url(lane, patch), f"tier_{lane}", patch)
     if blob is None:
@@ -134,26 +153,40 @@ def scrape_lane(lane: str, patch: str, min_pr: float, champ_accum: dict) -> dict
     lane_riot_ids = set(tierlist.keys())
     log.info("%s: %d champions with pr >= %.2f%%", lane, len(fetch_order), min_pr)
 
+    # Qualified rid set per enemy role, for filtering cross-role opponents. The
+    # subject's own lane uses this lane's set; if the pre-pass wasn't run, fall
+    # back to same-lane-only (still valid v2, just without cross-role data).
+    qbr = dict(qualified_by_role or {})
+    qbr.setdefault(lane, lane_riot_ids)
+
     matchups: dict[str, dict] = {}
     for idx, (slug, rid) in enumerate(fetch_order, 1):
         blob_b = fetch_json(build_url(slug, lane, patch), f"build_{lane}_{slug}", patch)
         if blob_b is None:
             log.warning("  [%d/%d] %s: no build data, skipping", idx, len(fetch_order), slug)
             continue
-        mu_list = parse_build_matchups(blob_b, lane_riot_ids)
-        reduced: dict[str, dict] = {}
-        for m in mu_list:
-            opp = m["riot_id"]
-            if opp not in lane_riot_ids or opp == rid:
-                continue
-            d2 = m.get("d2")
-            games = m.get("games")
-            if d2 is None or games is None or games <= 0:
-                continue
-            reduced[opp] = {"d2": round(float(d2), 4), "games": int(games)}
-        matchups[rid] = reduced
+        by_role = parse_build_matchups_by_role(blob_b)
+        role_map: dict[str, dict] = {}
+        for role, mu_list in by_role.items():
+            allowed = qbr.get(role)
+            reduced: dict[str, dict] = {}
+            for m in mu_list:
+                opp = m["riot_id"]
+                if allowed is not None and opp not in allowed:
+                    continue
+                if role == lane and opp == rid:  # self in own lane
+                    continue
+                d2 = m.get("d2")
+                games = m.get("games")
+                if d2 is None or games is None or games <= 0:
+                    continue
+                reduced[opp] = {"d2": round(float(d2), 4), "games": int(games)}
+            if reduced:
+                role_map[role] = reduced
+        matchups[rid] = role_map
         if idx % 10 == 0 or idx == len(fetch_order):
-            log.info("  [%d/%d] %s: %d matchups", idx, len(fetch_order), slug, len(reduced))
+            nrole = sum(len(v) for v in role_map.values())
+            log.info("  [%d/%d] %s: %d matchups across %d roles", idx, len(fetch_order), slug, nrole, len(role_map))
 
     snapshot = {
         "schema_version": SCHEMA_VERSION,
@@ -284,8 +317,11 @@ def main() -> None:
     lanes = LANES if args.lane == "all" else [args.lane]
 
     champ_accum: dict = {}
+    # Pre-pass: every lane's qualified rid set (all 5, even for a single-lane run)
+    # so cross-role opponents can be filtered to the opponent role's champions.
+    qualified_by_role = {role: lane_qualified(role, patch, args.min_pr, champ_accum) for role in ROLE_KEYS}
     for lane in lanes:
-        scrape_lane(lane, patch, args.min_pr, champ_accum)
+        scrape_lane(lane, patch, args.min_pr, champ_accum, qualified_by_role)
 
     write_champions(champ_accum)
     if args.skip_registry:

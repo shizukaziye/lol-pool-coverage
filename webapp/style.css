@@ -639,6 +639,68 @@ td.empty-state { white-space: normal; }
 .tile-tag.blind { background: var(--accent); color: #06122b; }
 .reco-empty { color: var(--text-dim); padding: 0.4em 0; }
 
+/* Combined win% caption under reco tiles (multi-role draft) */
+.champ-tile .tile-win {
+  font-size: 0.78em; font-weight: 700; color: var(--text-dim);
+  font-variant-numeric: tabular-nums; margin-top: -0.2em;
+}
+.champ-tile.best .tile-win { color: var(--good); }
+
+/* Enemy-team slots (Draft mode) — one big tile per role */
+.enemy-slots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 0.9em; }
+.enemy-slot {
+  position: relative; cursor: pointer; min-height: 92px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  border: 2px solid var(--border); border-radius: 9px; padding: 6px 4px; background: var(--bg-elev2);
+  transition: border-color .1s, background .1s, transform .1s;
+}
+.enemy-slot:hover { transform: translateY(-1px); border-color: var(--accent); }
+.enemy-slot:focus-visible { outline: none; border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
+.enemy-slot.focused { border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
+.enemy-slot.your-role { background: rgba(125,109,240,0.12); }
+.enemy-slot .slot-role {
+  font-size: 0.64em; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase;
+  color: var(--text-dim); display: flex; align-items: center; gap: 3px;
+}
+.enemy-slot .slot-you { font-size: 0.9em; font-weight: 700; text-transform: none; letter-spacing: 0; color: var(--accent-2); }
+.enemy-slot img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; background: var(--bg); }
+.enemy-slot .slot-plus { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 1.7em; color: var(--text-dim); min-height: 46px; }
+.enemy-slot .slot-clear {
+  position: absolute; top: 3px; right: 3px; width: 1.4em; height: 1.4em; border-radius: 50%;
+  border: none; cursor: pointer; background: rgba(0,0,0,0.6); color: #fff; font-weight: bold;
+  line-height: 1; padding: 0; display: flex; align-items: center; justify-content: center;
+}
+.enemy-slot .slot-clear:hover { background: var(--bad); }
+.enemy-picker-label-row { color: var(--text-dim); font-size: 0.85em; margin: 0 0 0.5em; }
+.enemy-picker-label-row strong { color: var(--accent); text-transform: capitalize; }
+
+/* Per-role breakdown for the recommended pick */
+.reco-breakdown { display: block; margin-top: 0.4em; font-size: 0.85em; }
+.reco-breakdown .bk-item { display: inline-block; margin: 0 0.6em 0.2em 0; color: var(--text-dim); }
+.reco-breakdown .bk-item .pos { color: var(--good); font-weight: 700; }
+.reco-breakdown .bk-item .neg { color: var(--bad); font-weight: 700; }
+
+/* Cross-role threat opt-in bar (Pool analysis) */
+.xrole-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.6em 1em;
+  background: var(--bg-elev); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.7em 0.9em;
+}
+.xrole-text { flex: 1; min-width: 220px; font-size: 0.9em; }
+.xrole-text .xrole-hint { color: var(--text-dim); }
+.xrole-opts { display: flex; flex-wrap: wrap; gap: 0.4em; }
+.xrole-opt {
+  cursor: pointer; border: 1px solid var(--border); border-radius: 999px; background: var(--bg-elev2);
+  color: var(--text-dim); padding: 0.3em 0.8em; font-size: 0.85em; font-weight: 600;
+}
+.xrole-opt:hover { border-color: var(--accent-2); color: var(--text); }
+.xrole-opt.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* Role pill marking a cross-role (off-lane) threat in tables */
+.role-badge {
+  display: inline-block; font-size: 0.62em; font-weight: 800; letter-spacing: 0.04em; vertical-align: middle;
+  padding: 1px 4px; border-radius: 4px; margin-left: 3px; background: var(--accent-2); color: #fff;
+}
+
 @media (max-width: 900px) {
   .draft-cols { grid-template-columns: 1fr; }
   .draft-reco { position: static; }
