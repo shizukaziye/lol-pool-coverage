@@ -4,9 +4,75 @@
   "patches": [
     {
       "patch": "16.12",
-      "scraped_at": "2026-06-19T11:33:01Z",
+      "scraped_at": "2026-06-19T11:29:04Z",
       "is_final": false,
       "k_back": 0
+    },
+    {
+      "patch": "16.11",
+      "scraped_at": "2026-06-19T12:26:29Z",
+      "is_final": true,
+      "k_back": 1
+    },
+    {
+      "patch": "16.10",
+      "scraped_at": "2026-06-19T12:31:58Z",
+      "is_final": true,
+      "k_back": 2
+    },
+    {
+      "patch": "16.9",
+      "scraped_at": "2026-06-19T12:37:55Z",
+      "is_final": true,
+      "k_back": 3
+    },
+    {
+      "patch": "16.8",
+      "scraped_at": "2026-06-19T12:43:08Z",
+      "is_final": true,
+      "k_back": 4
+    },
+    {
+      "patch": "16.7",
+      "scraped_at": "2026-06-19T12:48:34Z",
+      "is_final": true,
+      "k_back": 5
+    },
+    {
+      "patch": "16.6",
+      "scraped_at": "2026-06-19T12:54:12Z",
+      "is_final": true,
+      "k_back": 6
+    },
+    {
+      "patch": "16.5",
+      "scraped_at": "2026-06-19T12:59:45Z",
+      "is_final": true,
+      "k_back": 7
+    },
+    {
+      "patch": "16.4",
+      "scraped_at": "2026-06-19T13:04:58Z",
+      "is_final": true,
+      "k_back": 8
+    },
+    {
+      "patch": "16.3",
+      "scraped_at": "2026-06-19T13:10:15Z",
+      "is_final": true,
+      "k_back": 9
+    },
+    {
+      "patch": "16.2",
+      "scraped_at": "2026-06-19T13:15:19Z",
+      "is_final": true,
+      "k_back": 10
+    },
+    {
+      "patch": "16.1",
+      "scraped_at": "2026-06-19T13:20:19Z",
+      "is_final": true,
+      "k_back": 11
     }
   ]
 }
