@@ -35,7 +35,7 @@ PATCHES_FILE = DATA_DIR / "patches.json"
 
 LANES = ["top", "jungle", "middle", "bottom", "support"]
 SCHEMA_VERSION = 1
-WEIGHT_BASE = 0.9
+WEIGHT_BASE = 0.85
 MAX_K_BACK = 20  # exclusive upper bound
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")

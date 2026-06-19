@@ -143,14 +143,18 @@ export function renderAdds(table, data, opts, ctx, onAdd) {
   // How many handles to show per row — driven by opts.topContributors so every
   // row reserves the same number of grid slots and the columns line up.
   const slots = opts.topContributors || 6;
-  let html = `<thead><tr><th title="A champion you don't currently play that you could add. Click one to add it to your pool.">Candidate</th><th class="num" title="Best-adds score — how much coverage this champion would add, weighting each newly-answered threat by its pickrate. Higher = bigger upgrade.">Score</th><th title="The top threats this candidate would newly answer for you, with how much each contributes.">Handles (top ${slots})</th></tr></thead><tbody>`;
+  let html = `<thead><tr><th title="A champion you don't currently play that you could add. Click one to add it to your pool.">Candidate</th><th class="num" title="Best-adds score — how much coverage this champion would add, weighting each newly-answered threat by its pickrate. Higher = bigger upgrade.">Score</th><th title="The top threats this candidate would newly answer for you. Each shows the candidate's Δ2 in that matchup (positive = favored) and the threat's pickrate.">Handles (top ${slots}) — Δ2 · PR%</th></tr></thead><tbody>`;
   for (const r of rows) {
     if (r.score <= 0) continue;
     const meta = ctx.champByRiotId(r.cand);
     const cname = meta ? meta.name : r.cand;
-    let cells = r.contributors.map((c) =>
-      `<span class="c-item">${champCell(c.counter, ctx)}<span class="c-val">+${fmt(c.contribution, 1)}</span></span>`
-    );
+    let cells = r.contributors.map((c) => {
+      const dv = c.candD2;
+      const d2str = dv == null ? "—" : `${dv >= 0 ? "+" : ""}${fmt(dv, 1)}`;
+      const d2cls = dv == null ? "" : (dv >= 0 ? "pos" : "neg");
+      const prStr = c.counterPr == null ? "" : `${fmt(c.counterPr, 1)}%`;
+      return `<span class="c-item">${champCell(c.counter, ctx)}<span class="c-meta"><span class="c-d2 ${d2cls}">${d2str}</span><span class="c-pr">${prStr}</span></span></span>`;
+    });
     // Pad to a fixed slot count so the grid columns align across every row.
     while (cells.length < slots) cells.push(`<span class="c-item c-empty"></span>`);
     const contribs = cells.join("");

@@ -30,7 +30,7 @@ data/
 ```
 
 - `is_final`: `false` while the patch is live (gets re-scraped weekly); flipped to `true` when a new patch starts, after which the snapshot is frozen.
-- `k_back`: how many patches behind current. 0 = current. Used for the 0.9^k weighting.
+- `k_back`: how many patches behind current. 0 = current. Used for the 0.85^k weighting.
 - The list is kept sorted by recency (newest first). Patches with `k_back >= 20` are deleted.
 
 ## `data/champions.json`
@@ -107,7 +107,7 @@ Aggregated weighted view across the last 20 patches. Regenerated whenever a new 
 Weighted aggregation formula:
 
 ```
-weight(patch k_back) = 0.9 ** k_back   for k_back in 0..19
+weight(patch k_back) = 0.85 ** k_back   for k_back in 0..19
 
 weighted_d2(C, opp) = sum_k ( d2_k(C, opp) * games_k(C, opp) * weight_k )
                     / sum_k ( games_k(C, opp) * weight_k )

@@ -537,8 +537,8 @@ function renderPatchBlend() {
     .map((patch, i) => ({ patch, k: kByPatch.has(patch) ? kByPatch.get(patch) : i }))
     .sort((a, b) => a.k - b.k)
     .map(({ patch, k }) => {
-      const weightPct = Math.round(Math.pow(0.9, k) * 100);
-      return `<span class="patch-chip" title="${k === 0 ? "Current patch — full weight" : `${k} patch${k === 1 ? "" : "es"} old — weighted 0.9^${k}`}"><strong>${patch}</strong> ${weightPct}%</span>`;
+      const weightPct = Math.round(Math.pow(0.85, k) * 100);
+      return `<span class="patch-chip" title="${k === 0 ? "Current patch — full weight" : `${k} patch${k === 1 ? "" : "es"} old — weighted 0.85^${k}`}"><strong>${patch}</strong> ${weightPct}%</span>`;
     });
   els.patchBlendList.innerHTML = items.join("");
   els.patchBlend.hidden = false;

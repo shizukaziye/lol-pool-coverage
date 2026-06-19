@@ -148,7 +148,11 @@ export function candidateScores(data, opts) {
       const counterPr = pr(data, c);
       const contribution = counterPr * Math.max(0, -(candVsCounter + poolVal));
       if (contribution > 0) {
-        contribs.push({ counter: c, contribution, candVsCounter, poolValue: poolVal });
+        // candD2: the candidate's own Δ2 vs this counter (candidate's perspective,
+        // positive = candidate favored). Fall back to the negated reverse matchup.
+        const fwd = d2(data, cand, c);
+        const candD2 = fwd !== null ? fwd : -candVsCounter;
+        contribs.push({ counter: c, contribution, candVsCounter, candD2, counterPr, poolValue: poolVal });
       }
       score += contribution;
     }
