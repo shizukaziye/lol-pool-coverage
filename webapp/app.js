@@ -44,7 +44,17 @@ const els = {
 
 // ---------- DDragon ----------
 
-let ddragonVersion = "14.1.1"; // fallback
+// DDragon is Riot's official static-data CDN. We use it for two things:
+//  - the version-agnostic riot_id ↔ slug ↔ name mapping (data/champion.json)
+//  - champion portrait images (img/champion/{slug}.png, where slug is e.g.
+//    "Aatrox", "MonkeyKing" — DDragon's `id` field, not the lowercase form)
+//
+// Caching: name+slug lookups rarely change, so we stash the map in
+// localStorage and refresh once a day.
+
+let ddragonVersion = "15.10.1"; // fallback if /api/versions.json fails
+let ddragonChamps = {};         // riot_id (string) -> { slug, name }
+
 async function fetchDDragonVersion() {
   try {
     const versions = await fetch("https://ddragon.leagueoflegends.com/api/versions.json").then((r) => r.json());
@@ -53,12 +63,44 @@ async function fetchDDragonVersion() {
     console.warn("DDragon version fetch failed, using fallback", e);
   }
 }
+
+const CHAMP_CACHE_KEY = "ddragon-champs-v1";
+const CHAMP_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+async function fetchDDragonChampions() {
+  // Hit localStorage first.
+  try {
+    const raw = localStorage.getItem(CHAMP_CACHE_KEY);
+    if (raw) {
+      const cached = JSON.parse(raw);
+      if (cached.version === ddragonVersion && (Date.now() - cached.at) < CHAMP_CACHE_TTL_MS) {
+        ddragonChamps = cached.map;
+        return;
+      }
+    }
+  } catch { /* fall through */ }
+
+  try {
+    const url = `https://ddragon.leagueoflegends.com/cdn/${ddragonVersion}/data/en_US/champion.json`;
+    const d = await fetch(url).then((r) => r.json());
+    // DDragon: { data: { Aatrox: { id: "Aatrox", key: "266", name: "Aatrox", ... }, ... } }
+    const out = {};
+    for (const slug of Object.keys(d.data || {})) {
+      const entry = d.data[slug];
+      out[String(entry.key)] = { slug: entry.id, name: entry.name };
+    }
+    ddragonChamps = out;
+    try {
+      localStorage.setItem(CHAMP_CACHE_KEY, JSON.stringify({ version: ddragonVersion, at: Date.now(), map: out }));
+    } catch { /* quota; ignore */ }
+  } catch (e) {
+    console.warn("DDragon champion.json fetch failed", e);
+  }
+}
+
 function iconUrl(slug) {
-  // DDragon uses CapitalCase slugs for some champs (e.g. "MonkeyKing"). Our
-  // data uses lowercase slugs, but the typical mapping for the first version
-  // is `champion/<Cap>.png`. As a pragmatic default, capitalize first letter.
-  const cap = slug.charAt(0).toUpperCase() + slug.slice(1);
-  return `https://ddragon.leagueoflegends.com/cdn/${ddragonVersion}/img/champion/${cap}.png`;
+  if (!slug) return "";
+  return `https://ddragon.leagueoflegends.com/cdn/${ddragonVersion}/img/champion/${slug}.png`;
 }
 
 // ---------- State ----------
@@ -80,8 +122,18 @@ function setStatus(msg, cls = "") {
 }
 
 async function loadChampions() {
-  // Try real champions.json; if missing, synthesize from the lane data using slugs
-  // = lowercase name (best-effort) — but we'd rather have the real one.
+  // DDragon is the source of truth for riot_id ↔ slug ↔ display name.
+  // Build a champs object in the same shape the rest of the app expects.
+  if (Object.keys(ddragonChamps).length > 0) {
+    const by_riot_id = {};
+    const by_slug = {};
+    for (const [rid, meta] of Object.entries(ddragonChamps)) {
+      by_riot_id[rid] = { slug: meta.slug, name: meta.name };
+      by_slug[meta.slug] = { riot_id: Number(rid), name: meta.name };
+    }
+    return { schema_version: 1, source: "ddragon", by_riot_id, by_slug };
+  }
+  // Optional override: a scraped champions.json (mostly useful offline).
   try {
     const c = await fetch("../data/champions.json").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
     return c;
@@ -265,6 +317,7 @@ function attachSearches() {
 (async function boot() {
   setStatus("Loading…");
   await fetchDDragonVersion();
+  await fetchDDragonChampions();
   champs = await loadChampions();
   data = await loadLaneData();
   if (data && !champs) champs = synthesizeChampions(data);
