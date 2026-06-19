@@ -169,9 +169,11 @@ async function loadLaneData() {
   try {
     const r = await fetch(primary);
     if (!r.ok) throw new Error(`${r.status}`);
+    const j = await r.json();
     dataSource = "weighted";
-    setStatus(`Loaded ${lane} from data/weighted/`, "");
-    return await r.json();
+    const p = j.source_patches && j.source_patches[0];
+    setStatus(p ? `Patch ${p} · live data` : "Live data", "ok");
+    return j;
   } catch (e) {
     console.warn(`No data/weighted/${lane}.json (${e.message}); trying fixture`);
     try {

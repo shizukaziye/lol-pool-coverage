@@ -92,6 +92,7 @@ body { min-height: 100vh; }
   background: currentColor;
   flex: 0 0 auto;
 }
+.status.ok { color: var(--ok, #4ec98f); }
 .status.warn { color: var(--warn); }
 .status.bad { color: var(--bad); }
 
