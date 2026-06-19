@@ -13,6 +13,9 @@ node_modules/
 .idea/
 .DS_Store
 
+# Local dev server config (machine-specific absolute paths)
+.claude/
+
 # Scraper temp / cache
 scraper/.cache/
 scraper/.cf-cookies.json

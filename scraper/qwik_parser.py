@@ -95,12 +95,49 @@ def _resolve_num(v: Any, deref: Callable[[Any], Any]) -> Optional[float]:
     return None
 
 
+def _resolve_rid(v: Any, deref: Callable[[Any], Any]) -> Optional[str]:
+    """Resolve a champion riot id, normalized to a string of digits.
+
+    Live lolalytics stores riot ids in matchup tuples as ints (e.g. 266) but
+    the tierlist meta and the synthetic test fixtures use digit-strings. Accept
+    either and always return the digit-string form.
+    """
+    cur = v
+    for _ in range(3):
+        r = deref(cur)
+        if isinstance(r, bool):
+            return None
+        if isinstance(r, int):
+            return str(r)
+        if isinstance(r, float):
+            return str(int(r)) if r.is_integer() else None
+        if isinstance(r, str):
+            return r if r.isdigit() else None
+        if r is cur:
+            return None
+        cur = r
+    return None
+
+
+def _resolve_dict(v: Any, deref: Callable[[Any], Any]) -> Optional[dict]:
+    cur = v
+    for _ in range(3):
+        r = deref(cur)
+        if isinstance(r, dict):
+            return r
+        if r is cur:
+            return None
+        cur = r
+    return None
+
+
 def _looks_like_champ_entry(entry: list, deref) -> bool:
-    """A 6-tuple [riot_id, wr, d1, d2, _, games] where riot_id is a digit string."""
+    """A 6-tuple [riot_id, wr, d1, d2, _, games] where riot_id resolves to a
+    champion id (int on live data, digit-string in fixtures)."""
     if not isinstance(entry, list) or len(entry) < 6:
         return False
-    rid = _resolve_str(entry[0], deref)
-    if rid is None or not rid.isdigit():
+    rid = _resolve_rid(entry[0], deref)
+    if rid is None:
         return False
     games = _resolve_num(entry[5], deref)
     if games is None or games < 0:
@@ -135,13 +172,36 @@ def parse_tierlist(blob: dict) -> dict:
     if meta is None:
         raise ValueError("tierlist: meta dict (champPath/champId/champions) not found")
 
-    champ_path = _resolve_list(meta.get("champPath"), deref) or []
-    champ_id = _resolve_list(meta.get("champId"), deref) or []
-    champions = _resolve_list(meta.get("champions"), deref) or []
+    # The meta arrays come in two shapes:
+    #   * list form (synthetic fixtures): champPath/champId/champions are parallel
+    #     lists in canonical champion order.
+    #   * dict form (live lolalytics): champPath is {seq_str: slug_ref}; champId is
+    #     {slug: riot_id_ref}; champions is {slug: name_ref} (keyed by slug, not
+    #     parallel). We materialize parallel arrays in champPath's sequence order.
+    champ_path_list = _resolve_list(meta.get("champPath"), deref)
+    if champ_path_list is not None:
+        champ_id_list = _resolve_list(meta.get("champId"), deref) or []
+        champions_list = _resolve_list(meta.get("champions"), deref) or []
+        champ_path_s = [_resolve_str(x, deref) or "" for x in champ_path_list]
+        champ_ids_s = [_resolve_rid(x, deref) or "" for x in champ_id_list]
+        champ_names_s = [_resolve_str(x, deref) or "" for x in champions_list]
+    else:
+        path_d = _resolve_dict(meta.get("champPath"), deref) or {}
+        id_d = _resolve_dict(meta.get("champId"), deref) or {}
+        name_d = _resolve_dict(meta.get("champions"), deref) or {}
 
-    champ_path_s = [_resolve_str(x, deref) or "" for x in champ_path]
-    champ_ids_s = [_resolve_str(x, deref) or "" for x in champ_id]
-    champ_names_s = [_resolve_str(x, deref) or "" for x in champions]
+        def _seq_key(k: str):
+            try:
+                return (0, int(k))
+            except ValueError:
+                return (1, k)
+
+        ordered_slugs = [_resolve_str(path_d[k], deref) or "" for k in sorted(path_d, key=_seq_key)]
+        slug_to_rid = {slug: _resolve_rid(v, deref) or "" for slug, v in id_d.items()}
+        slug_to_name = {slug: _resolve_str(v, deref) or "" for slug, v in name_d.items()}
+        champ_path_s = ordered_slugs
+        champ_ids_s = [slug_to_rid.get(slug, "") for slug in ordered_slugs]
+        champ_names_s = [slug_to_name.get(slug, "") for slug in ordered_slugs]
 
     n = len(champ_path_s)
 
@@ -217,7 +277,7 @@ def parse_build_matchups(blob: dict, lane_riot_ids: set[str]) -> list[dict]:
             sub_l = _resolve_list(sub, deref)
             if sub_l is None:
                 continue
-            rid = _resolve_str(sub_l[0], deref)
+            rid = _resolve_rid(sub_l[0], deref)
             if rid in lane_riot_ids:
                 score += 1
         return score
@@ -229,7 +289,7 @@ def parse_build_matchups(blob: dict, lane_riot_ids: set[str]) -> list[dict]:
         sub_l = _resolve_list(sub, deref)
         if sub_l is None or not _looks_like_champ_entry(sub_l, deref):
             continue
-        rid = _resolve_str(sub_l[0], deref)
+        rid = _resolve_rid(sub_l[0], deref)
         wr = _resolve_num(sub_l[1], deref)
         d1 = _resolve_num(sub_l[2], deref)
         d2 = _resolve_num(sub_l[3], deref)
