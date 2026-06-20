@@ -708,11 +708,15 @@ td.empty-state { white-space: normal; }
   flex: 0 0 auto; width: 2.4em; text-align: right;
   font-size: 0.62em; font-weight: 800; letter-spacing: 0.04em; color: var(--text-dim);
 }
-.shines-foes { display: flex; flex-wrap: wrap; gap: 3px; }
-.shines-foe {
+.shines-foes { display: flex; flex-wrap: wrap; gap: 5px 6px; }
+.shines-foe { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; width: 30px; }
+.shines-foe img {
   width: 26px; height: 26px; border-radius: 50%; object-fit: cover;
   background: var(--bg-elev2); border: 1px solid var(--border);
 }
+.shines-d2 { font-size: 0.62em; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; color: var(--text-dim); }
+.shines-d2.pos { color: var(--good); }
+.shines-d2.neg { color: var(--bad); }
 
 @media (max-width: 900px) {
   .draft-cols { grid-template-columns: 1fr; }

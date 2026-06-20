@@ -26,14 +26,18 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-// Small round portrait (name + Δ2 on hover) for dense "good against" rows.
+// Small round portrait with the candidate's Δ2 caption (name on hover) for the
+// dense "good against" rows.
 function champMini(id, ctx, d2v) {
   const meta = ctx.champByRiotId(id);
   const name = meta ? meta.name : id;
   const slug = meta ? meta.slug : null;
   const url = slug ? ctx.iconUrl(slug) : "";
-  const title = d2v != null ? `${name}  +${Number(d2v).toFixed(1)}` : name;
-  return `<img class="shines-foe" src="${url}" alt="${escapeHtml(name)}" title="${escapeHtml(title)}" loading="lazy" onerror="this.style.visibility='hidden'"/>`;
+  const d2str = d2v == null ? "" : `${d2v >= 0 ? "+" : ""}${Number(d2v).toFixed(1)}`;
+  const cls = d2v == null ? "" : (d2v >= 0 ? "pos" : "neg");
+  return `<span class="shines-foe" title="${escapeHtml(name)}">` +
+    `<img src="${url}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.style.visibility='hidden'"/>` +
+    `<span class="shines-d2 ${cls}">${d2str}</span></span>`;
 }
 
 const ROLE_ABBR = { top: "TOP", jungle: "JNG", middle: "MID", bottom: "BOT", support: "SUP" };
