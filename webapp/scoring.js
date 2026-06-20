@@ -383,7 +383,7 @@ export function comboAdds(data, opts, rosters = null) {
         const improvement = -(candVsCounter + poolVal);
         if (improvement >= minImprove) {
           const fwd = d2(data, champ, T, role);
-          arr.push({ id: T, d2: fwd !== null ? fwd : -candVsCounter, contribution: rawPr[i] * improvement });
+          arr.push({ id: T, d2: fwd !== null ? fwd : -candVsCounter, improvement, contribution: rawPr[i] * improvement });
         }
       }
       arr.sort((a, b) => b.contribution - a.contribution);

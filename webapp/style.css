@@ -714,14 +714,14 @@ td.empty-state { white-space: normal; }
 /* Reserve the lane track at 7 chips (34px each + 8px gaps) so the next role's
    group always begins at the same x, no matter how many tops a row has. */
 .shines-lane .shines-foes { width: calc(7 * 34px + 6 * 8px); }
-.shines-foe { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; width: 34px; }
+.shines-foe { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; width: 34px; }
 .shines-foe img {
   width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
   background: var(--bg-elev2); border: 1px solid var(--border);
 }
-.shines-d2 { font-size: 0.74em; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; color: var(--text-dim); }
-.shines-d2.pos { color: var(--good); }
-.shines-d2.neg { color: var(--bad); }
+/* Lead with the improvement (always positive); raw Δ2 is quiet fine print. */
+.shines-improve { margin-top: 1px; font-size: 0.74em; font-weight: 700; line-height: 1; color: var(--good); font-variant-numeric: tabular-nums; }
+.shines-d2 { font-size: 0.58em; font-weight: 600; line-height: 1; color: var(--text-dim); font-variant-numeric: tabular-nums; opacity: 0.8; }
 
 @media (max-width: 900px) {
   .draft-cols { grid-template-columns: 1fr; }

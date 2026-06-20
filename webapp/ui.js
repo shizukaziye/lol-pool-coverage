@@ -26,18 +26,21 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-// Small round portrait with the candidate's Δ2 caption (name on hover) for the
-// dense "good against" rows.
-function champMini(id, ctx, d2v) {
+// Small round portrait for the dense "good against" rows. Leads with how much
+// this candidate improves your pool's Δ2 vs the champ (always positive), with
+// the candidate's actual Δ2 in fine print underneath.
+function champMini(id, ctx, improvement, d2v) {
   const meta = ctx.champByRiotId(id);
   const name = meta ? meta.name : id;
   const slug = meta ? meta.slug : null;
   const url = slug ? ctx.iconUrl(slug) : "";
+  const impStr = improvement == null ? "" : `+${Number(improvement).toFixed(1)}`;
   const d2str = d2v == null ? "" : `${d2v >= 0 ? "+" : ""}${Number(d2v).toFixed(1)}`;
-  const cls = d2v == null ? "" : (d2v >= 0 ? "pos" : "neg");
-  return `<span class="shines-foe" title="${escapeHtml(name)}">` +
+  const title = `${name} — improves your Δ2 by ${impStr} (its Δ2 here: ${d2str})`;
+  return `<span class="shines-foe" title="${escapeHtml(title)}">` +
     `<img src="${url}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.style.visibility='hidden'"/>` +
-    `<span class="shines-d2 ${cls}">${d2str}</span></span>`;
+    `<span class="shines-improve">${impStr}</span>` +
+    `<span class="shines-d2">${d2str}</span></span>`;
 }
 
 const ROLE_ABBR = { top: "TOP", jungle: "JNG", middle: "MID", bottom: "BOT", support: "SUP" };
@@ -222,7 +225,7 @@ export function renderComboAdds(table, data, opts, ctx, onAdd, rosters = null) {
       const foes = (r.bestVs && r.bestVs[role]) || [];
       const isLane = idx === 0; // res.roles[0] is your lane — reserve its width
       if (foes.length === 0 && !isLane) return "";
-      const icons = foes.map((fo) => champMini(fo.id, ctx, fo.d2)).join("");
+      const icons = foes.map((fo) => champMini(fo.id, ctx, fo.improvement, fo.d2)).join("");
       return `<div class="shines-group${isLane ? " shines-lane" : ""}"><span class="shines-label">${ROLE_ABBR[role] || role}</span><span class="shines-foes">${icons}</span></div>`;
     }).join("");
     html += `<tr>` +
