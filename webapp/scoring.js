@@ -350,14 +350,17 @@ export function comboAdds(data, opts, rosters = null) {
 
   // For a candidate, the threats per role it most IMPROVES your pool against —
   // same metric as the old single-row "handles". We keep only matchups where the
-  // candidate beats your pool's current best answer by at least MIN_IMPROVE Δ2
-  // (≈ 1% win rate), rank them by pickrate-weighted improvement, and cap per role
-  // (lane 7, others 5) so the UI shows one tidy row.
-  const MIN_IMPROVE = 1;
+  // candidate beats your pool's current best answer by at least `minImprove` Δ2
+  // (≈ win-rate points), ranked by pickrate-weighted improvement, capped per role
+  // so the UI shows one tidy row. The bar is per-role: lane matchups swing far
+  // more than off-role ones, so 2 in lane keeps the list discriminating (at 1
+  // nearly every add clears it vs many champs and clips the cap), while off-role
+  // deltas are small so 1 is the meaningful bar there.
   const bestVsByRole = (champ) => {
     const out = {};
     for (const role of roles) {
       const n = role === lane ? 7 : 5;
+      const minImprove = role === lane ? 2 : 1;
       const { ids, rawPr } = dist[role];
       const pvm = poolValByRole[role];
       const arr = [];
@@ -378,7 +381,7 @@ export function comboAdds(data, opts, rosters = null) {
         }
         if (g < minGames) continue;
         const improvement = -(candVsCounter + poolVal);
-        if (improvement >= MIN_IMPROVE) {
+        if (improvement >= minImprove) {
           const fwd = d2(data, champ, T, role);
           arr.push({ id: T, d2: fwd !== null ? fwd : -candVsCounter, contribution: rawPr[i] * improvement });
         }
