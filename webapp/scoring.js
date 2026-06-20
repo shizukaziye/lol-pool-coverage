@@ -145,11 +145,12 @@ export function poolD2(data, counter, { pool, mains = [], buf = DEFAULTS.BUF }, 
   for (const p of pool) {
     const raw = d2(data, p, counter, role);
     if (raw === null) {
-      breakdown.push({ p, raw: null, effective: null, isMain: mainSet.has(p) });
+      breakdown.push({ p, raw: null, effective: null, games: 0, isMain: mainSet.has(p) });
       continue;
     }
+    const g = games(data, p, counter, role);
     const effective = raw + (mainSet.has(p) ? buf : 0);
-    breakdown.push({ p, raw, effective, isMain: mainSet.has(p) });
+    breakdown.push({ p, raw, effective, games: g, isMain: mainSet.has(p) });
     if (best === null || effective > best) {
       best = effective;
       bestBy = p;

@@ -310,6 +310,8 @@ body { min-height: 100vh; }
 .results-table .champ-cell img { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; background: var(--bg-elev2); }
 .results-table .num { font-variant-numeric: tabular-nums; text-align: right; }
 .results-table .d2-cell { font-variant-numeric: tabular-nums; padding: 0.25em 0.5em; border-radius: 3px; text-align: right; }
+.d2-cell.thin-sample { opacity: 0.45; }
+.thin-mark { color: var(--text-dim); font-weight: 700; margin-left: 1px; }
 .d2-pos { color: var(--good); }
 .d2-neg { color: var(--bad); }
 .d2-zero { color: var(--text-dim); }

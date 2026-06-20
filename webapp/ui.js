@@ -8,10 +8,15 @@ import {
 const fmt = (x, d = 2) => (x == null ? "—" : Number(x).toFixed(d));
 const fmtPct = (x, d = 1) => (x == null ? "—" : `${(x * 100).toFixed(d)}%`);
 
-function d2Cell(v) {
+// Matchups under this many games are statistically noisy (a few flukey wins can
+// swing Δ2 by double digits), so we dim them and mark them with a *.
+const THIN_GAMES = 200;
+function d2Cell(v, g) {
   if (v == null) return `<td class="d2-cell d2-zero">—</td>`;
   const cls = v > 0 ? "d2-pos cell-pos" : v < 0 ? "d2-neg cell-neg" : "d2-zero";
-  return `<td class="d2-cell ${cls}">${v > 0 ? "+" : ""}${fmt(v)}</td>`;
+  const thin = g != null && g < THIN_GAMES;
+  const attrs = thin ? ` class="d2-cell ${cls} thin-sample" title="Thin sample — only ${g} games; treat as unreliable"` : ` class="d2-cell ${cls}"`;
+  return `<td${attrs}>${v > 0 ? "+" : ""}${fmt(v)}${thin ? '<span class="thin-mark" aria-hidden="true">*</span>' : ""}</td>`;
 }
 
 function champCell(id, ctx) {
@@ -159,7 +164,7 @@ export function renderWorst(table, data, opts, ctx, rosters = null) {
     const byMap = new Map(r.breakdown.map((b) => [b.p, b]));
     for (const p of pool) {
       const b = byMap.get(p);
-      html += d2Cell(b ? b.raw : null);
+      html += d2Cell(b ? b.raw : null, b ? b.games : null);
     }
     html += `</tr>`;
   }
