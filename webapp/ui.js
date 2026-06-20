@@ -27,6 +27,15 @@ function champCell(id, ctx) {
   return `<span class="champ-cell"><img src="${url}" alt="" onerror="this.style.visibility='hidden'"/><span>${escapeHtml(name)}</span></span>`;
 }
 
+// Larger champion cell: portrait on top, name as a caption below.
+function champCellLarge(id, ctx) {
+  const meta = ctx.champByRiotId(id);
+  const name = meta ? meta.name : id;
+  const slug = meta ? meta.slug : null;
+  const url = slug ? ctx.iconUrl(slug) : "";
+  return `<span class="champ-cell-lg"><img src="${url}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"/><span class="ccl-name">${escapeHtml(name)}</span></span>`;
+}
+
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
@@ -178,14 +187,18 @@ export function renderWorst(table, data, opts, ctx, rosters = null) {
     table.innerHTML = `<tbody><tr><td class="empty-state">Add pool champions to see worst matchups.</td></tr></tbody>`;
     return;
   }
-  const pool = opts.pool;
+  // Reserve at least 3 pool columns so a small pool doesn't make the table
+  // collapse into dead space; extra slots render empty.
+  const cols = [...opts.pool];
+  while (cols.length < 3) cols.push(null);
   let html = `<thead><tr><th title="A popular meta pick you draft against. A role pill (e.g. JNG) marks an enemy from another lane.">Counter</th><th class="num" title="Pickrate: how often this champion is played in its lane.">PR%</th><th title="Your best answer in the pool to this threat (mains get the +1 buffer). The Δ2 columns show each champ's matchup.">Best answer</th>`;
-  for (const p of pool) html += `<th>${champCell(p, ctx)}</th>`;
+  for (const p of cols) html += `<th class="pool-col">${p ? champCellLarge(p, ctx) : ""}</th>`;
   html += `</tr></thead><tbody>`;
   for (const r of rows) {
-    html += `<tr><td>${champCell(r.counter, ctx)}${roleBadge(r.role, data.lane)}</td><td class="num">${fmt(r.pr, 2)}</td><td>${r.by ? champCell(r.by, ctx) : "—"}</td>`;
+    html += `<tr><td>${champCellLarge(r.counter, ctx)}${roleBadge(r.role, data.lane)}</td><td class="num">${fmt(r.pr, 2)}</td><td>${r.by ? champCellLarge(r.by, ctx) : "—"}</td>`;
     const byMap = new Map(r.breakdown.map((b) => [b.p, b]));
-    for (const p of pool) {
+    for (const p of cols) {
+      if (p === null) { html += `<td class="pool-col"></td>`; continue; }
       const b = byMap.get(p);
       html += d2Cell(b ? b.raw : null, b ? b.games : null);
     }
@@ -212,7 +225,7 @@ export function renderAdds(table, data, opts, ctx, onAdd, rosters = null) {
       .slice(0, 10)
       .map((c) => champMini(c.counter, ctx, c.improvement, c.candD2))
       .join("");
-    html += `<tr><td><button type="button" class="add-cand" data-add="${r.cand}" title="Add ${escapeHtml(cname)} to your pool">${champCell(r.cand, ctx)}<span class="add-plus" aria-hidden="true">+</span></button></td><td class="num">${fmt(r.score, 2)}</td><td><div class="shines-foes handles-chips">${chips || '<span class="muted-dash">— only marginal gains</span>'}</div></td></tr>`;
+    html += `<tr><td><button type="button" class="add-cand add-cand-lg" data-add="${r.cand}" title="Add ${escapeHtml(cname)} to your pool">${champCellLarge(r.cand, ctx)}<span class="add-plus" aria-hidden="true">+</span></button></td><td class="num">${fmt(r.score, 2)}</td><td><div class="shines-foes handles-chips">${chips || '<span class="muted-dash">— only marginal gains</span>'}</div></td></tr>`;
   }
   html += `</tbody>`;
   table.innerHTML = html;
@@ -250,7 +263,7 @@ export function renderComboAdds(table, data, opts, ctx, onAdd, rosters = null) {
       return `<div class="shines-group${isLane ? " shines-lane" : ""}"><span class="shines-label">${ROLE_ABBR[role] || role}</span><span class="shines-foes">${icons}</span></div>`;
     }).join("");
     html += `<tr>` +
-      `<td><button type="button" class="add-cand" data-add="${r.cand}" title="Add ${escapeHtml(cname)} to your pool">${champCell(r.cand, ctx)}<span class="add-plus" aria-hidden="true">+</span></button></td>` +
+      `<td><button type="button" class="add-cand add-cand-lg" data-add="${r.cand}" title="Add ${escapeHtml(cname)} to your pool">${champCellLarge(r.cand, ctx)}<span class="add-plus" aria-hidden="true">+</span></button></td>` +
       `<td class="d2-cell d2-pos cell-pos">+${fmt(r.addValue, 2)}</td>` +
       `<td class="num">${Math.round(r.upgradeShare * 100)}%</td>` +
       `<td><div class="shines">${groups || "—"}</div></td>` +
@@ -340,7 +353,7 @@ export function renderBlindPicks(container, data, opts, ctx, onAdd, rosters = nu
     return `<button type="button" class="bp-card add-cand" data-add="${r.champ}" title="${escapeHtml(title)}">` +
       `<img class="bp-img" src="${url}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"/>` +
       `<span class="bp-body"><span class="bp-name">${escapeHtml(cname)}</span>` +
-      `<span class="bp-meta"><span class="${avgCls}">${avgStr}</span> avg · <span class="bp-dim">${fmt(r.pr, 1)}% PR</span></span></span>` +
+      `<span class="bp-meta"><span class="${avgCls}">${avgStr}</span> avg Δ2 · <span class="bp-dim">${fmt(r.pr, 1)}% PR</span></span></span>` +
       `<span class="add-plus" aria-hidden="true">+</span></button>`;
   }).join("");
   if (onAdd) {

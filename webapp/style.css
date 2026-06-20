@@ -328,6 +328,14 @@ body { min-height: 100vh; }
 .results-table tbody tr:hover { background: var(--row-hover); }
 .results-table .champ-cell { display: inline-flex; align-items: center; gap: 0.45em; }
 .results-table .champ-cell img { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; background: var(--bg-elev2); }
+/* Larger captioned champion cell (worst-matchups counters/answers, best-adds candidates) */
+.champ-cell-lg { display: inline-flex; flex-direction: column; align-items: center; gap: 3px; width: 58px; vertical-align: middle; }
+.champ-cell-lg img { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; background: var(--bg-elev2); }
+.champ-cell-lg .ccl-name { font-size: 0.76em; line-height: 1.15; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.results-table th.pool-col { text-align: center; vertical-align: bottom; }
+.results-table th.pool-col .champ-cell-lg { margin: 0 auto; }
+.add-cand-lg { align-items: flex-start; }
+.add-cand-lg .add-plus { margin-top: 15px; }
 .results-table .num { font-variant-numeric: tabular-nums; text-align: right; }
 .results-table .d2-cell { font-variant-numeric: tabular-nums; padding: 0.25em 0.5em; border-radius: 3px; text-align: right; }
 .d2-cell.thin-sample { opacity: 0.45; }
