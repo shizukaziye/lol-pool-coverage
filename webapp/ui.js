@@ -209,7 +209,7 @@ export function renderComboAdds(table, data, opts, ctx, onAdd, rosters = null) {
     `<th title="A champion you don't play. Click one to add it to your pool.">Candidate</th>` +
     `<th class="num" title="How much this champ raises your pool's expected best-response win rate, averaged over the simulated field of enemy comps — counting only comps where it would actually be your pick. In Δ2 points (≈ win% gain).">Win added</th>` +
     `<th class="num" title="Share of the simulated field of enemy comps where this champ would be your best pick (an upgrade over your current pool).">Upgrades</th>` +
-    `<th title="The champions this candidate is favored into, listed per role (its best matchups by Δ2). Hover an icon for the name and Δ2.">Good against</th>` +
+    `<th title="The threats this candidate most improves your pool against — per role, ranked by pickrate × how much better it is than your pool's current best answer (same as the old 'handles'). Hover an icon for the name and the candidate's Δ2.">Good against</th>` +
     `</tr></thead><tbody>`;
   for (const r of rows) {
     const meta = ctx.champByRiotId(r.cand);

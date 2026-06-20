@@ -269,27 +269,31 @@ export function candidateScores(data, opts, rosters = null) {
  */
 export function comboAdds(data, opts, rosters = null) {
   const {
-    pool = [], mains = [], buf = DEFAULTS.BUF, minPr = DEFAULTS.MIN_PR,
+    pool = [], mains = [], banned = [], buf = DEFAULTS.BUF, minPr = DEFAULTS.MIN_PR,
     minGames = DEFAULTS.MIN_GAMES, extraRoles = [], maxComps = 40000, samples = 8000,
   } = opts;
   const lane = data.lane;
+  const bannedSet = new Set(banned.map(String));
   const roles = [lane, ...extraRoles.filter((r) => r !== lane && rosters && rosters[r])];
   const mainSet = new Set(mains.map(String));
   const poolArr = pool.map(String);
 
-  // PR-weighted enemy distribution per role, over common picks (PR ≥ minPr).
+  // PR-weighted enemy distribution per role, over common picks (PR ≥ minPr,
+  // not banned). `rawPr` keeps the unnormalized pickrate for threat weighting.
   const dist = {};
   for (const role of roles) {
     const src = role === lane ? data.tierlist : rosters[role];
     const ids = [];
+    const rawPr = [];
     const probs = [];
     let sum = 0;
     for (const [id, info] of Object.entries(src || {})) {
+      if (bannedSet.has(id)) continue;
       const p = role === lane ? (info && info.pr) || 0 : info || 0;
-      if (p >= minPr) { ids.push(id); probs.push(p); sum += p; }
+      if (p >= minPr) { ids.push(id); rawPr.push(p); sum += p; }
     }
-    for (let i = 0; i < probs.length; i++) probs[i] /= sum || 1;
-    dist[role] = { ids, probs };
+    for (let i = 0; i < rawPr.length; i++) probs.push(rawPr[i] / (sum || 1));
+    dist[role] = { ids, probs, rawPr };
   }
 
   // Candidates: common, well-sampled champs you don't already play.
@@ -335,19 +339,49 @@ export function comboAdds(data, opts, rosters = null) {
     }
   };
 
-  // For a candidate, its strongest matchups in each role (favored only),
-  // shown per role rather than as comp pairs: lane gets 6, other roles 3.
+  // Pool's best effective Δ2 vs each common threat, per role (buffered, like
+  // candidateScores) — the baseline a candidate is judged against.
+  const poolValByRole = {};
+  for (const role of roles) {
+    const m = new Map();
+    for (const T of dist[role].ids) m.set(T, poolD2(data, T, opts, role).value);
+    poolValByRole[role] = m;
+  }
+
+  // For a candidate, the threats per role it most IMPROVES your pool against —
+  // same metric as the old single-row "handles": pickrate × max(0, how much
+  // better the candidate is than your pool's current best answer). Lane shows 6,
+  // other roles 3. (Ranked by improvement, not by raw Δ2.)
   const bestVsByRole = (champ) => {
     const out = {};
     for (const role of roles) {
       const n = role === lane ? 6 : 3;
+      const { ids, rawPr } = dist[role];
+      const pvm = poolValByRole[role];
       const arr = [];
-      for (const enemyId of dist[role].ids) {
-        const dv = d2(data, champ, enemyId, role);
-        if (dv === null || dv <= 0 || games(data, champ, enemyId, role) < minGames) continue;
-        arr.push({ id: enemyId, d2: dv });
+      for (let i = 0; i < ids.length; i++) {
+        const T = ids[i];
+        if (poolArr.includes(T)) continue; // your own pool isn't a threat
+        const poolVal = pvm.get(T);
+        if (poolVal === null || poolVal === undefined) continue;
+        // counter-vs-candidate: same-lane reads it directly; cross-role inverts
+        // the candidate's own Δ2 (the enemy isn't a subject in this file).
+        const direct = d2(data, T, champ, role);
+        let candVsCounter, g;
+        if (direct !== null) { candVsCounter = direct; g = games(data, T, champ, role); }
+        else {
+          const inv = d2(data, champ, T, role);
+          if (inv === null) continue;
+          candVsCounter = -inv; g = games(data, champ, T, role);
+        }
+        if (g < minGames) continue;
+        const contribution = rawPr[i] * Math.max(0, -(candVsCounter + poolVal));
+        if (contribution > 0) {
+          const fwd = d2(data, champ, T, role);
+          arr.push({ id: T, d2: fwd !== null ? fwd : -candVsCounter, contribution });
+        }
       }
-      arr.sort((a, b) => b.d2 - a.d2);
+      arr.sort((a, b) => b.contribution - a.contribution);
       out[role] = arr.slice(0, n);
     }
     return out;

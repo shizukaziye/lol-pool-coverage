@@ -151,6 +151,12 @@ when small (≤ `maxComps`, the deterministic limit of Monte Carlo) and
 seeded-sampled otherwise. `baseExpected` is your pool's mean best-response Δ2
 across the field.
 
+Each row's "good against" lists (`bestVs`, shown per role — 6 for your lane, 3
+for each extra role) reuse the **single-row coverage metric**, not raw Δ2: the
+threats ranked by `pr(T) × max(0, −(candVsCounter + pool_d2(T)))` — i.e. how much
+the candidate improves on your pool's current best answer to that threat,
+weighted by its pickrate.
+
 ## Fixtures
 
 The scraper repo should include a tiny golden-data fixture (3 champions, 1 lane, hand-computed expected outputs) that both Python tests and JS tests can run against, to confirm both implementations agree numerically.
