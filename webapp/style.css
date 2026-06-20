@@ -702,10 +702,10 @@ td.empty-state { white-space: normal; }
 }
 
 /* "Good against" per-role matchup lists in the simulated best-adds table */
-.shines { display: flex; flex-direction: column; gap: 4px; }
-.shines-group { display: flex; align-items: center; gap: 6px; }
+.shines { display: flex; flex-direction: column; gap: 7px; }
+.shines-group { display: flex; align-items: flex-start; gap: 6px; }
 .shines-label {
-  flex: 0 0 auto; width: 2.4em; text-align: right;
+  flex: 0 0 auto; width: 2.4em; text-align: right; padding-top: 6px;
   font-size: 0.62em; font-weight: 800; letter-spacing: 0.04em; color: var(--text-dim);
 }
 .shines-foes { display: flex; flex-wrap: wrap; gap: 5px 6px; }

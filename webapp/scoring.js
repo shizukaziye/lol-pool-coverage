@@ -350,12 +350,13 @@ export function comboAdds(data, opts, rosters = null) {
 
   // For a candidate, the threats per role it most IMPROVES your pool against —
   // same metric as the old single-row "handles": pickrate × max(0, how much
-  // better the candidate is than your pool's current best answer). Lane shows 6,
-  // other roles 3. (Ranked by improvement, not by raw Δ2.)
+  // better the candidate is than your pool's current best answer). Returns ALL
+  // meaningful (positive-improvement) matchups ranked by improvement (not raw
+  // Δ2); the UI wraps as many as fit. A safety cap guards pathological data.
+  const BEST_VS_CAP = 24;
   const bestVsByRole = (champ) => {
     const out = {};
     for (const role of roles) {
-      const n = role === lane ? 6 : 3;
       const { ids, rawPr } = dist[role];
       const pvm = poolValByRole[role];
       const arr = [];
@@ -382,7 +383,7 @@ export function comboAdds(data, opts, rosters = null) {
         }
       }
       arr.sort((a, b) => b.contribution - a.contribution);
-      out[role] = arr.slice(0, n);
+      out[role] = arr.slice(0, BEST_VS_CAP);
     }
     return out;
   };
