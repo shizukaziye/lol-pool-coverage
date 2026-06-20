@@ -81,6 +81,29 @@ export function renderChips(container, ids, ctx, { onRemove, onToggleMain, mains
   }
 }
 
+// Your pool as big champ-select tiles (portrait + name caption), each with a ★
+// main toggle and × remove in the corners.
+export function renderPoolTiles(container, ids, ctx, { onRemove, onToggleMain, mainsSet = new Set() } = {}) {
+  container.innerHTML = "";
+  for (const id of ids) {
+    const meta = ctx.champByRiotId(id);
+    const name = meta ? meta.name : id;
+    const slug = meta ? meta.slug : null;
+    const url = slug ? ctx.iconUrl(slug) : "";
+    const isMain = mainsSet.has(id);
+    const tile = document.createElement("div");
+    tile.className = "pool-tile" + (isMain ? " main" : "");
+    tile.innerHTML =
+      `<button type="button" class="pt-star${isMain ? " on" : ""}" aria-pressed="${isMain}" title="${isMain ? "Main — you play this above average (+ buffer). Click to unset." : "Mark as a main (you play this better than the average sample)"}">★</button>` +
+      `<button type="button" class="pt-x" title="Remove ${escapeHtml(name)}" aria-label="Remove ${escapeHtml(name)}">×</button>` +
+      `<img src="${url}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"/>` +
+      `<span class="pt-name">${escapeHtml(name)}</span>`;
+    tile.querySelector(".pt-x").addEventListener("click", (e) => { e.stopPropagation(); onRemove?.(id); });
+    tile.querySelector(".pt-star").addEventListener("click", (e) => { e.stopPropagation(); onToggleMain?.(id); });
+    container.appendChild(tile);
+  }
+}
+
 export function attachSearch(input, results, ctx, { onPick, filter = () => true }) {
   let activeIdx = -1;
   let items = [];

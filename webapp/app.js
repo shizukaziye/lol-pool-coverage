@@ -328,7 +328,7 @@ function renderAll() {
     return;
   }
   const mainsSet = new Set(state.mains);
-  ui.renderChips(els.poolChips, state.pool, c, {
+  ui.renderPoolTiles(els.poolChips, state.pool, c, {
     onRemove: (id) => {
       state.pool = state.pool.filter((x) => x !== id);
       state.mains = state.mains.filter((x) => x !== id);
@@ -340,7 +340,6 @@ function renderAll() {
       persist(); renderAll();
     },
     mainsSet,
-    showMain: true,
   });
   ui.renderChips(els.bannedChips, state.banned, c, {
     onRemove: (id) => { state.banned = state.banned.filter((x) => x !== id); persist(); renderAll(); },

@@ -132,19 +132,17 @@
     <!-- Pool builder -->
     <section class="panel" id="pool-panel">
       <h2>Your pool</h2>
-      <div class="chip-input">
-        <div class="chips" id="pool-chips" aria-label="Pool champions"></div>
-        <div class="search-wrap">
-          <input type="text" id="pool-search" placeholder="Add a champion..." autocomplete="off" />
-          <ul class="search-results" id="pool-results" role="listbox"></ul>
-        </div>
+      <div class="search-wrap">
+        <input type="text" id="pool-search" placeholder="Add a champion you play..." autocomplete="off" />
+        <ul class="search-results" id="pool-results" role="listbox"></ul>
       </div>
+      <div class="pool-tiles" id="pool-chips" aria-label="Pool champions"></div>
       <div class="pool-cta" id="pool-cta" hidden>
-        <p>Start by adding the champions you play in this lane, then mark your mains in Settings. The analysis below updates as you build the pool.</p>
+        <p>Add the champions you play in this lane — the analysis below updates as you build the pool.</p>
         <button type="button" class="btn btn-primary" id="load-example">Load example pool</button>
       </div>
       <div class="pool-actions">
-        <p class="hint">Tap <span class="hint-star">★</span> on a champion to mark it a <em>main</em> (you play it better than average — it gets the +Δ2 buffer). Tap <span class="hint-x">×</span> to remove it.</p>
+        <p class="hint"><span class="hint-star">★</span> marks a <em>main</em> (gets the +Δ2 buffer) · <span class="hint-x">×</span> removes.</p>
         <button type="button" class="btn btn-subtle" id="clear-pool" hidden>Clear pool</button>
       </div>
     </section>
@@ -153,24 +151,11 @@
     <section class="panel" id="settings-panel">
       <h2>Settings</h2>
 
-      <div class="setting">
-        <label for="main-buf">Main <span class="hint-star">★</span> Δ2 buffer: <span id="main-buf-val">1.0</span></label>
-        <input type="range" id="main-buf" min="0" max="3" step="0.1" value="1.0" />
-        <p class="hint">Extra Δ2 your mains get for playing them better than the average sample. Set to 0 to turn the bonus off.</p>
-      </div>
-
-      <div class="setting">
-        <label>Banned counters <small>(excluded from counter pool)</small></label>
-        <div class="chip-input">
-          <div class="chips" id="banned-chips"></div>
-          <div class="search-wrap">
-            <input type="text" id="banned-search" placeholder="Add a ban..." autocomplete="off" />
-            <ul class="search-results" id="banned-results" role="listbox"></ul>
-          </div>
-        </div>
-      </div>
-
       <div class="settings-grid">
+        <div class="setting">
+          <label for="main-buf">Main <span class="hint-star">★</span> Δ2 buffer: <span id="main-buf-val">1.0</span></label>
+          <input type="range" id="main-buf" min="0" max="3" step="0.1" value="1.0" />
+        </div>
         <div class="setting">
           <label for="blind-rate">Blind pick rate: <span id="blind-rate-val">40%</span></label>
           <input type="range" id="blind-rate" min="0" max="100" step="1" value="40" />
@@ -184,16 +169,23 @@
           <input type="range" id="min-games" min="0" max="2000" step="50" value="100" />
         </div>
       </div>
-    </section>
 
-    <!-- Cross-role threats opt-in (affects every panel below) -->
-    <div class="xrole-bar wide" id="xrole-bar" hidden>
-      <div class="xrole-text">
-        <strong>Also weigh threats from another role?</strong>
-        <span class="xrole-hint">By default only your own lane's meta picks count as threats. Add one enemy role and its champions join every list below (2 roles max).</span>
+      <div class="setting" id="xrole-bar" hidden>
+        <label>Also weigh another enemy role's threats <small>(2 roles max)</small></label>
+        <div class="xrole-opts" id="xrole-opts"></div>
       </div>
-      <div class="xrole-opts" id="xrole-opts"></div>
-    </div>
+
+      <div class="setting">
+        <label>Banned counters <small>(excluded from the threat pool)</small></label>
+        <div class="chip-input">
+          <div class="chips" id="banned-chips"></div>
+          <div class="search-wrap">
+            <input type="text" id="banned-search" placeholder="Add a ban..." autocomplete="off" />
+            <ul class="search-results" id="banned-results" role="listbox"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Worst matchups -->
     <section class="panel wide" id="worst-panel">
