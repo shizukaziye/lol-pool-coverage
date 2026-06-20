@@ -65,6 +65,21 @@ jobs:
           HTML
           fi
 
+      - name: Cache-bust code assets
+        # GitHub Pages forces `Cache-Control: max-age=600` on static files, so
+        # returning visitors keep stale JS/CSS for ~10 min after a deploy. Append
+        # the commit SHA as ?v= to the entry assets AND the ES-module imports that
+        # reference each other, so every deploy serves fresh code. Data .json
+        # fetches are intentionally left untouched (they revalidate on their own).
+        run: |
+          V="${GITHUB_SHA::8}"
+          cd _site/webapp
+          sed -i -E "s#(src=\"app\.js)\"#\1?v=$V\"#; s#(href=\"style\.css)\"#\1?v=$V\"#" index.html
+          sed -i -E "s#(from \"\./[a-zA-Z0-9_-]+\.js)\"#\1?v=$V\"#g" *.js
+          echo "cache-busted with v=$V:"
+          grep -nE "app\.js\?v=|style\.css\?v=" index.html || true
+          grep -nE "from \"\./[a-zA-Z0-9_-]+\.js\?v=" *.js || true
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
