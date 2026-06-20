@@ -173,25 +173,13 @@ export function renderAdds(table, data, opts, ctx, onAdd, rosters = null) {
     table.innerHTML = `<tbody><tr><td class="empty-state">No candidates score above 0 — either your pool covers everything or there's no data.</td></tr></tbody>`;
     return;
   }
-  // How many handles to show per row — driven by opts.topContributors so every
-  // row reserves the same number of grid slots and the columns line up.
-  const slots = opts.topContributors || 6;
-  let html = `<thead><tr><th title="A champion you don't currently play that you could add. Click one to add it to your pool.">Candidate</th><th class="num" title="Best-adds score — how much coverage this champion would add, weighting each newly-answered threat by its pickrate. Higher = bigger upgrade.">Score</th><th title="The top threats this candidate would newly answer for you. Each shows the candidate's Δ2 in that matchup (positive = favored) and the threat's pickrate.">Handles (top ${slots}) — Δ2 · PR%</th></tr></thead><tbody>`;
+  let html = `<thead><tr><th title="A champion you don't currently play that you could add. Click one to add it to your pool.">Candidate</th><th class="num" title="Best-adds score — how much coverage this champion would add, weighting each newly-answered threat by its pickrate. Higher = bigger upgrade.">Score</th><th title="The top threats this candidate would newly answer for you. Each chip leads with how much it improves your pool's Δ2 vs that champ; the candidate's own Δ2 is in fine print underneath.">Good against</th></tr></thead><tbody>`;
   for (const r of rows) {
     if (r.score <= 0) continue;
     const meta = ctx.champByRiotId(r.cand);
     const cname = meta ? meta.name : r.cand;
-    let cells = r.contributors.map((c) => {
-      const dv = c.candD2;
-      const d2str = dv == null ? "—" : `${dv >= 0 ? "+" : ""}${fmt(dv, 1)}`;
-      const d2cls = dv == null ? "" : (dv >= 0 ? "pos" : "neg");
-      const prStr = c.counterPr == null ? "" : `${fmt(c.counterPr, 1)}%`;
-      return `<span class="c-item">${champCell(c.counter, ctx)}${roleBadge(c.role, data.lane)}<span class="c-meta"><span class="c-d2 ${d2cls}">${d2str}</span><span class="c-pr">${prStr}</span></span></span>`;
-    });
-    // Pad to a fixed slot count so the grid columns align across every row.
-    while (cells.length < slots) cells.push(`<span class="c-item c-empty"></span>`);
-    const contribs = cells.join("");
-    html += `<tr><td><button type="button" class="add-cand" data-add="${r.cand}" title="Add ${escapeHtml(cname)} to your pool">${champCell(r.cand, ctx)}<span class="add-plus" aria-hidden="true">+</span></button></td><td class="num">${fmt(r.score, 2)}</td><td><div class="contribs" style="--slots:${slots}">${contribs}</div></td></tr>`;
+    const chips = r.contributors.map((c) => champMini(c.counter, ctx, c.improvement, c.candD2)).join("");
+    html += `<tr><td><button type="button" class="add-cand" data-add="${r.cand}" title="Add ${escapeHtml(cname)} to your pool">${champCell(r.cand, ctx)}<span class="add-plus" aria-hidden="true">+</span></button></td><td class="num">${fmt(r.score, 2)}</td><td><div class="shines-foes handles-chips">${chips}</div></td></tr>`;
   }
   html += `</tbody>`;
   table.innerHTML = html;

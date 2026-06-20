@@ -238,7 +238,8 @@ export function candidateScores(data, opts, rosters = null) {
         // candD2: candidate's own Δ2 vs this threat (positive = candidate favored).
         const fwd = d2(data, cand, t.id, t.role);
         const candD2 = fwd !== null ? fwd : -candVsCounter;
-        contribs.push({ counter: t.id, role: t.role, contribution, candVsCounter, candD2, counterPr: t.prc, poolValue: poolVal });
+        const improvement = -(candVsCounter + poolVal); // how much better than your pool's best
+        contribs.push({ counter: t.id, role: t.role, contribution, improvement, candVsCounter, candD2, counterPr: t.prc, poolValue: poolVal });
       }
       score += contribution;
     }
