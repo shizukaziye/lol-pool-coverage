@@ -701,10 +701,18 @@ td.empty-state { white-space: normal; }
   padding: 1px 4px; border-radius: 4px; margin-left: 3px; background: var(--accent-2); color: #fff;
 }
 
-/* "Shines vs" enemy comp in the simulated best-adds table */
-.combo-comp { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-.combo-foe { display: inline-flex; align-items: center; }
-.combo-plus { color: var(--text-dim); margin: 0 1px; font-weight: 700; }
+/* "Good against" per-role matchup lists in the simulated best-adds table */
+.shines { display: flex; flex-direction: column; gap: 4px; }
+.shines-group { display: flex; align-items: center; gap: 6px; }
+.shines-label {
+  flex: 0 0 auto; width: 2.4em; text-align: right;
+  font-size: 0.62em; font-weight: 800; letter-spacing: 0.04em; color: var(--text-dim);
+}
+.shines-foes { display: flex; flex-wrap: wrap; gap: 3px; }
+.shines-foe {
+  width: 26px; height: 26px; border-radius: 50%; object-fit: cover;
+  background: var(--bg-elev2); border: 1px solid var(--border);
+}
 
 @media (max-width: 900px) {
   .draft-cols { grid-template-columns: 1fr; }

@@ -314,7 +314,6 @@ export function comboAdds(data, opts, rosters = null) {
 
   const addVal = new Map(cands.map((c) => [c, 0]));
   const upgradeW = new Map(cands.map((c) => [c, 0]));
-  const bestComp = new Map();
   let baseExpected = 0;
 
   const evalComp = (comp, weight) => {
@@ -332,10 +331,26 @@ export function comboAdds(data, opts, rosters = null) {
       if (gain > 0) {
         addVal.set(C, addVal.get(C) + weight * gain);
         upgradeW.set(C, upgradeW.get(C) + weight);
-        const bc = bestComp.get(C);
-        if (!bc || gain > bc.gain) bestComp.set(C, { comp: { ...comp }, gain });
       }
     }
+  };
+
+  // For a candidate, its strongest matchups in each role (favored only),
+  // shown per role rather than as comp pairs: lane gets 6, other roles 3.
+  const bestVsByRole = (champ) => {
+    const out = {};
+    for (const role of roles) {
+      const n = role === lane ? 6 : 3;
+      const arr = [];
+      for (const enemyId of dist[role].ids) {
+        const dv = d2(data, champ, enemyId, role);
+        if (dv === null || dv <= 0 || games(data, champ, enemyId, role) < minGames) continue;
+        arr.push({ id: enemyId, d2: dv });
+      }
+      arr.sort((a, b) => b.d2 - a.d2);
+      out[role] = arr.slice(0, n);
+    }
+    return out;
   };
 
   const total = roles.reduce((n, r) => n * dist[r].ids.length, 1);
@@ -368,7 +383,7 @@ export function comboAdds(data, opts, rosters = null) {
   }
 
   const rows = cands
-    .map((c) => ({ cand: c, addValue: addVal.get(c), upgradeShare: upgradeW.get(c), bestComp: (bestComp.get(c) || {}).comp || null }))
+    .map((c) => ({ cand: c, addValue: addVal.get(c), upgradeShare: upgradeW.get(c), bestVs: bestVsByRole(c) }))
     .filter((r) => r.addValue > 1e-6)
     .sort((a, b) => b.addValue - a.addValue);
 

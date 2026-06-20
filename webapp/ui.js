@@ -26,6 +26,16 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+// Small round portrait (name + Δ2 on hover) for dense "good against" rows.
+function champMini(id, ctx, d2v) {
+  const meta = ctx.champByRiotId(id);
+  const name = meta ? meta.name : id;
+  const slug = meta ? meta.slug : null;
+  const url = slug ? ctx.iconUrl(slug) : "";
+  const title = d2v != null ? `${name}  +${Number(d2v).toFixed(1)}` : name;
+  return `<img class="shines-foe" src="${url}" alt="${escapeHtml(name)}" title="${escapeHtml(title)}" loading="lazy" onerror="this.style.visibility='hidden'"/>`;
+}
+
 const ROLE_ABBR = { top: "TOP", jungle: "JNG", middle: "MID", bottom: "BOT", support: "SUP" };
 const ROLE_FULL = { top: "Top", jungle: "Jungle", middle: "Mid", bottom: "Bot", support: "Support" };
 // A small pill marking a cross-role (off-lane) threat; nothing for same-lane.
@@ -199,19 +209,22 @@ export function renderComboAdds(table, data, opts, ctx, onAdd, rosters = null) {
     `<th title="A champion you don't play. Click one to add it to your pool.">Candidate</th>` +
     `<th class="num" title="How much this champ raises your pool's expected best-response win rate, averaged over the simulated field of enemy comps — counting only comps where it would actually be your pick. In Δ2 points (≈ win% gain).">Win added</th>` +
     `<th class="num" title="Share of the simulated field of enemy comps where this champ would be your best pick (an upgrade over your current pool).">Upgrades</th>` +
-    `<th title="The enemy comp this champion helps you most against.">Shines vs</th>` +
+    `<th title="The champions this candidate is favored into, listed per role (its best matchups by Δ2). Hover an icon for the name and Δ2.">Good against</th>` +
     `</tr></thead><tbody>`;
   for (const r of rows) {
     const meta = ctx.champByRiotId(r.cand);
     const cname = meta ? meta.name : r.cand;
-    const compCells = r.bestComp
-      ? res.roles.map((role) => `<span class="combo-foe">${champCell(r.bestComp[role], ctx)}${roleBadge(role, data.lane)}</span>`).join(`<span class="combo-plus" aria-hidden="true">+</span>`)
-      : "—";
+    const groups = res.roles.map((role) => {
+      const foes = (r.bestVs && r.bestVs[role]) || [];
+      if (foes.length === 0) return "";
+      const icons = foes.map((fo) => champMini(fo.id, ctx, fo.d2)).join("");
+      return `<div class="shines-group"><span class="shines-label">${ROLE_ABBR[role] || role}</span><span class="shines-foes">${icons}</span></div>`;
+    }).join("");
     html += `<tr>` +
       `<td><button type="button" class="add-cand" data-add="${r.cand}" title="Add ${escapeHtml(cname)} to your pool">${champCell(r.cand, ctx)}<span class="add-plus" aria-hidden="true">+</span></button></td>` +
       `<td class="d2-cell d2-pos cell-pos">+${fmt(r.addValue, 2)}</td>` +
       `<td class="num">${Math.round(r.upgradeShare * 100)}%</td>` +
-      `<td><div class="combo-comp">${compCells}</div></td>` +
+      `<td><div class="shines">${groups || "—"}</div></td>` +
       `</tr>`;
   }
   html += `</tbody>`;
