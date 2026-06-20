@@ -766,6 +766,7 @@ td.empty-state { white-space: normal; }
 .bp-meta { font-size: 0.78em; color: var(--text-dim); font-variant-numeric: tabular-nums; }
 .bp-meta .pos { color: var(--good); font-weight: 700; }
 .bp-meta .neg { color: var(--bad); font-weight: 700; }
+.bp-meta .bp-risk { color: var(--text); font-weight: 700; }
 .bp-meta .bp-dim { color: var(--text-dim); }
 .bp-card .add-plus { margin-left: auto; color: var(--text-dim); font-weight: 700; flex: 0 0 auto; }
 .bp-card:hover .add-plus { color: var(--good); }

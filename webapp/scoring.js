@@ -544,6 +544,9 @@ export function blindCandidates(data, opts, rosters = null) {
   // Only suggest common, well-sampled first-picks (no thin-data noise).
   const cands = counterPool(data, opts).filter((id) => isSuggestable(data, id, opts));
   const threats = threatPool(data, rosters, opts);
+  // Constant field-wide pickrate denominator so blindAvg is exactly proportional
+  // to the blind score (display matches the ranking, regardless of per-champ data gaps).
+  const fieldPr = threats.reduce((a, t) => a + t.prc, 0) || 1;
   const out = [];
   for (const champ of cands) {
     let blind = 0;
@@ -565,6 +568,12 @@ export function blindCandidates(data, opts, rosters = null) {
     out.push({
       champ,
       blind,
+      // blindAvg: the field-wide pickrate-weighted average counting ONLY the
+      // losing matchups (wins → 0). This is the metric a blind pick is judged on —
+      // you can't pick your good matchups, so only the bad ones matter. Divided by
+      // the constant fieldPr so it's exactly proportional to `blind` (same ranking),
+      // on a Δ2 scale. Closer to 0 = safer.
+      blindAvg: blind / fieldPr,
       blindWeighted: den > 0 ? num / den : 0,
       pr: pr(data, champ),
       lossCount,

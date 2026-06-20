@@ -346,14 +346,15 @@ export function renderBlindPicks(container, data, opts, ctx, onAdd, rosters = nu
     const cname = meta ? meta.name : r.champ;
     const slug = meta ? meta.slug : null;
     const url = slug ? ctx.iconUrl(slug) : "";
-    const avg = r.blindWeighted;
-    const avgStr = `${avg >= 0 ? "+" : ""}${fmt(avg, 1)}`;
-    const avgCls = avg >= 0 ? "pos" : "neg";
-    const title = `Add ${cname} — avg Δ2 ${avgStr} into the field · ${fmt(r.pr, 1)}% pickrate · blind ${fmt(r.blind, 0)}`;
+    // Downside only: pickrate-weighted avg of this champ's LOSING matchups vs the
+    // field (wins ignored — you can't pick them when blind). Closer to 0 = safer.
+    const dn = r.blindAvg;
+    const dnStr = fmt(dn, 2);
+    const title = `Add ${cname} — blind risk ${dnStr} Δ2 (pickrate-weighted average of its losing matchups; closer to 0 = safer) · ${fmt(r.pr, 1)}% pickrate`;
     return `<button type="button" class="bp-card add-cand" data-add="${r.champ}" title="${escapeHtml(title)}">` +
       `<img class="bp-img" src="${url}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"/>` +
       `<span class="bp-body"><span class="bp-name">${escapeHtml(cname)}</span>` +
-      `<span class="bp-meta"><span class="${avgCls}">${avgStr}</span> avg Δ2 · <span class="bp-dim">${fmt(r.pr, 1)}% PR</span></span></span>` +
+      `<span class="bp-meta"><span class="bp-risk">${dnStr}</span> risk · <span class="bp-dim">${fmt(r.pr, 1)}% PR</span></span></span>` +
       `<span class="add-plus" aria-hidden="true">+</span></button>`;
   }).join("");
   if (onAdd) {
