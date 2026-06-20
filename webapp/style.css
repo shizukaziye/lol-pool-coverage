@@ -702,13 +702,18 @@ td.empty-state { white-space: normal; }
 }
 
 /* "Good against" per-role matchup lists in the simulated best-adds table */
-/* One row: TOP group, then JNG group to its right; each group is one icon tall. */
-.shines { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px 18px; }
+/* One row: TOP group, then JNG group to its right; each group is one icon tall.
+   nowrap so JNG never drops below TOP — it always starts past the reserved
+   7-top track (the table cell widens; .scroll-x handles narrow viewports). */
+.shines { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 18px; }
 .shines-group { display: flex; align-items: center; gap: 8px; }
 .shines-label {
   flex: 0 0 auto; font-size: 0.68em; font-weight: 800; letter-spacing: 0.04em; color: var(--text-dim);
 }
 .shines-foes { display: flex; flex-wrap: nowrap; gap: 8px; }
+/* Reserve the lane track at 7 chips (34px each + 8px gaps) so the next role's
+   group always begins at the same x, no matter how many tops a row has. */
+.shines-lane .shines-foes { width: calc(7 * 34px + 6 * 8px); }
 .shines-foe { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; width: 34px; }
 .shines-foe img {
   width: 32px; height: 32px; border-radius: 50%; object-fit: cover;

@@ -218,11 +218,12 @@ export function renderComboAdds(table, data, opts, ctx, onAdd, rosters = null) {
   for (const r of rows) {
     const meta = ctx.champByRiotId(r.cand);
     const cname = meta ? meta.name : r.cand;
-    const groups = res.roles.map((role) => {
+    const groups = res.roles.map((role, idx) => {
       const foes = (r.bestVs && r.bestVs[role]) || [];
-      if (foes.length === 0) return "";
+      const isLane = idx === 0; // res.roles[0] is your lane — reserve its width
+      if (foes.length === 0 && !isLane) return "";
       const icons = foes.map((fo) => champMini(fo.id, ctx, fo.d2)).join("");
-      return `<div class="shines-group"><span class="shines-label">${ROLE_ABBR[role] || role}</span><span class="shines-foes">${icons}</span></div>`;
+      return `<div class="shines-group${isLane ? " shines-lane" : ""}"><span class="shines-label">${ROLE_ABBR[role] || role}</span><span class="shines-foes">${icons}</span></div>`;
     }).join("");
     html += `<tr>` +
       `<td><button type="button" class="add-cand" data-add="${r.cand}" title="Add ${escapeHtml(cname)} to your pool">${champCell(r.cand, ctx)}<span class="add-plus" aria-hidden="true">+</span></button></td>` +
