@@ -716,6 +716,7 @@ td.empty-state { white-space: normal; }
 .shines-lane .shines-foes { width: calc(7 * 34px + 6 * 8px); }
 /* Default (single-role) Best adds reuses the same chips but wraps freely. */
 .handles-chips { flex-wrap: wrap; gap: 8px 10px; }
+.muted-dash { color: var(--text-dim); font-size: 0.85em; align-self: center; }
 .shines-foe { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; width: 34px; }
 .shines-foe img {
   width: 32px; height: 32px; border-radius: 50%; object-fit: cover;

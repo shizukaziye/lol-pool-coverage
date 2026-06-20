@@ -288,7 +288,6 @@ function buildOpts() {
     blindRate: state.blindRate,
     minPr: state.minPr,
     minGames: state.minGames,
-    topContributors: 6,
     // Pool analysis: at most one extra enemy role (2 roles total). Only honor it
     // when we actually have that role's roster loaded.
     extraRoles: state.extraRole && rosters?.rosters?.[state.extraRole] ? [state.extraRole] : [],

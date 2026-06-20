@@ -178,8 +178,13 @@ export function renderAdds(table, data, opts, ctx, onAdd, rosters = null) {
     if (r.score <= 0) continue;
     const meta = ctx.champByRiotId(r.cand);
     const cname = meta ? meta.name : r.cand;
-    const chips = r.contributors.map((c) => champMini(c.counter, ctx, c.improvement, c.candD2)).join("");
-    html += `<tr><td><button type="button" class="add-cand" data-add="${r.cand}" title="Add ${escapeHtml(cname)} to your pool">${champCell(r.cand, ctx)}<span class="add-plus" aria-hidden="true">+</span></button></td><td class="num">${fmt(r.score, 2)}</td><td><div class="shines-foes handles-chips">${chips}</div></td></tr>`;
+    // Show the top 10 handles, dropping any that improve your matchup by < 1 Δ2.
+    const chips = r.contributors
+      .filter((c) => c.improvement >= 1)
+      .slice(0, 10)
+      .map((c) => champMini(c.counter, ctx, c.improvement, c.candD2))
+      .join("");
+    html += `<tr><td><button type="button" class="add-cand" data-add="${r.cand}" title="Add ${escapeHtml(cname)} to your pool">${champCell(r.cand, ctx)}<span class="add-plus" aria-hidden="true">+</span></button></td><td class="num">${fmt(r.score, 2)}</td><td><div class="shines-foes handles-chips">${chips || '<span class="muted-dash">— only marginal gains</span>'}</div></td></tr>`;
   }
   html += `</tbody>`;
   table.innerHTML = html;

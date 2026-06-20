@@ -196,7 +196,7 @@ export function worstMatchups(data, opts, rosters = null) {
  *   { cand, score, contributors: [{ counter, contribution, candVsCounter, poolValue }] }
  */
 export function candidateScores(data, opts, rosters = null) {
-  const { pool, minGames = DEFAULTS.MIN_GAMES, topContributors = 4 } = opts;
+  const { pool, minGames = DEFAULTS.MIN_GAMES } = opts;
   const poolSet = new Set(pool.map(String));
   const threats = threatPool(data, rosters, opts);
 
@@ -233,18 +233,19 @@ export function candidateScores(data, opts, rosters = null) {
         g = games(data, cand, t.id, t.role);
       }
       if (g < minGames) continue;
-      const contribution = t.prc * Math.max(0, -(candVsCounter + poolVal));
+      const improvement = -(candVsCounter + poolVal); // how much better than your pool's best
+      const contribution = t.prc * Math.max(0, improvement);
       if (contribution > 0) {
-        // candD2: candidate's own Δ2 vs this threat (positive = candidate favored).
         const fwd = d2(data, cand, t.id, t.role);
-        const candD2 = fwd !== null ? fwd : -candVsCounter;
-        const improvement = -(candVsCounter + poolVal); // how much better than your pool's best
+        const candD2 = fwd !== null ? fwd : -candVsCounter; // candidate's own Δ2 vs this threat
         contribs.push({ counter: t.id, role: t.role, contribution, improvement, candVsCounter, candD2, counterPr: t.prc, poolValue: poolVal });
       }
       score += contribution;
     }
     contribs.sort((a, b) => b.contribution - a.contribution);
-    out.push({ cand, score, contributors: contribs.slice(0, topContributors) });
+    // Return all positive contributors (sorted); the UI decides how many handles
+    // to show and applies any improvement threshold.
+    out.push({ cand, score, contributors: contribs });
   }
   out.sort((a, b) => b.score - a.score);
   return out;
