@@ -292,22 +292,31 @@ export function renderBlind(table, data, opts, ctx, rosters = null) {
 }
 
 // Best blind picks in the lane you don't play yet — click one to add it.
-export function renderBlindPicks(table, data, opts, ctx, onAdd, rosters = null) {
-  const rows = blindCandidates(data, opts, rosters).slice(0, 20);
+export function renderBlindPicks(container, data, opts, ctx, onAdd, rosters = null) {
+  const rows = blindCandidates(data, opts, rosters).slice(0, 18);
   if (rows.length === 0) {
-    table.innerHTML = `<tbody><tr><td class="empty-state">No data for this lane yet.</td></tr></tbody>`;
+    container.innerHTML = `<div class="empty-state">No data for this lane yet.</div>`;
     return;
   }
-  let html = `<thead><tr><th title="A safe first-pick in this lane you don't currently play. Click one to add it to your pool.">Blind pick</th><th class="num" title="How often this champion is played in this lane.">PR%</th><th class="num" title="Average Δ2 across the meta, weighted by pickrate. Positive = favored into the field overall.">Avg Δ2</th><th class="num" title="Blind score — sum of this champ's losing matchups weighted by how common they are. Less negative (closer to 0) = safer to blind.">Blind</th></tr></thead><tbody>`;
-  for (const r of rows) {
+  // Compact cards in a responsive grid (safest first). Avg Δ2 is the headline
+  // (favored into the field); pickrate + blind score live in the tooltip.
+  container.innerHTML = rows.map((r) => {
     const meta = ctx.champByRiotId(r.champ);
     const cname = meta ? meta.name : r.champ;
-    html += `<tr><td><button type="button" class="add-cand" data-add="${r.champ}" title="Add ${escapeHtml(cname)} to your pool">${champCell(r.champ, ctx)}<span class="add-plus" aria-hidden="true">+</span></button></td><td class="num">${fmt(r.pr, 2)}</td>${d2Cell(r.blindWeighted)}${d2Cell(r.blind)}</tr>`;
-  }
-  html += `</tbody>`;
-  table.innerHTML = html;
+    const slug = meta ? meta.slug : null;
+    const url = slug ? ctx.iconUrl(slug) : "";
+    const avg = r.blindWeighted;
+    const avgStr = `${avg >= 0 ? "+" : ""}${fmt(avg, 1)}`;
+    const avgCls = avg >= 0 ? "pos" : "neg";
+    const title = `Add ${cname} — avg Δ2 ${avgStr} into the field · ${fmt(r.pr, 1)}% pickrate · blind ${fmt(r.blind, 0)}`;
+    return `<button type="button" class="bp-card add-cand" data-add="${r.champ}" title="${escapeHtml(title)}">` +
+      `<img class="bp-img" src="${url}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"/>` +
+      `<span class="bp-body"><span class="bp-name">${escapeHtml(cname)}</span>` +
+      `<span class="bp-meta"><span class="${avgCls}">${avgStr}</span> avg · <span class="bp-dim">${fmt(r.pr, 1)}% PR</span></span></span>` +
+      `<span class="add-plus" aria-hidden="true">+</span></button>`;
+  }).join("");
   if (onAdd) {
-    table.querySelectorAll(".add-cand").forEach((btn) => {
+    container.querySelectorAll(".add-cand").forEach((btn) => {
       btn.addEventListener("click", () => onAdd(btn.dataset.add));
     });
   }

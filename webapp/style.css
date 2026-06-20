@@ -257,6 +257,9 @@ body { min-height: 100vh; }
 
 /* ----- Settings ----- */
 .setting { margin-bottom: 1em; }
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.4em; }
+.settings-grid .setting { margin-bottom: 0.6em; }
+@media (max-width: 520px) { .settings-grid { grid-template-columns: 1fr; } }
 .setting:last-child { margin-bottom: 0; }
 .setting > label { display: block; color: var(--text-dim); font-size: 0.85em; margin-bottom: 0.35em; }
 .setting > label small { color: var(--text-dim); font-weight: normal; }
@@ -717,6 +720,25 @@ td.empty-state { white-space: normal; }
 /* Default (single-role) Best adds reuses the same chips but wraps freely. */
 .handles-chips { flex-wrap: wrap; gap: 8px 10px; }
 .muted-dash { color: var(--text-dim); font-size: 0.85em; align-self: center; }
+
+/* Best blind picks — responsive card grid (fills the wide panel, stays short) */
+.blindpicks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(186px, 1fr)); gap: 8px; }
+.bp-card {
+  display: flex; align-items: center; gap: 9px; cursor: pointer; text-align: left;
+  background: var(--bg-elev2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 7px 9px; color: var(--text);
+  transition: border-color .12s, background .12s, transform .1s;
+}
+.bp-card:hover { border-color: var(--accent); background: var(--row-hover); transform: translateY(-1px); }
+.bp-img { width: 36px; height: 36px; border-radius: 50%; flex: 0 0 auto; object-fit: cover; background: var(--bg); }
+.bp-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.bp-name { font-size: 0.9em; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bp-meta { font-size: 0.78em; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.bp-meta .pos { color: var(--good); font-weight: 700; }
+.bp-meta .neg { color: var(--bad); font-weight: 700; }
+.bp-meta .bp-dim { color: var(--text-dim); }
+.bp-card .add-plus { margin-left: auto; color: var(--text-dim); font-weight: 700; flex: 0 0 auto; }
+.bp-card:hover .add-plus { color: var(--good); }
 .shines-foe { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; width: 34px; }
 .shines-foe img {
   width: 32px; height: 32px; border-radius: 50%; object-fit: cover;

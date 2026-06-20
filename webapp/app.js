@@ -48,7 +48,7 @@ const els = {
   cutTable: document.getElementById("cut-table"),
   cutHint: document.getElementById("cut-hint"),
   blindTable: document.getElementById("blind-table"),
-  blindPicksTable: document.getElementById("blindpicks-table"),
+  blindPicksGrid: document.getElementById("blindpicks-grid"),
   usageBars: document.getElementById("usage-bars"),
 
   poolCta: document.getElementById("pool-cta"),
@@ -318,9 +318,10 @@ function renderAll() {
   const opts = buildOpts();
   if (!data) {
     const msg = `<strong>No meta data yet.</strong> The weekly scrape hasn't run for this lane, and no fixture was found. Run the scraper to populate <code>data/weighted/${lane}.json</code>.`;
-    for (const t of [els.worstTable, els.addsTable, els.cutTable, els.blindTable, els.blindPicksTable]) {
+    for (const t of [els.worstTable, els.addsTable, els.cutTable, els.blindTable]) {
       t.innerHTML = `<tbody><tr><td class="empty-state no-data">${msg}</td></tr></tbody>`;
     }
+    els.blindPicksGrid.innerHTML = `<div class="empty-state no-data">${msg}</div>`;
     els.usageBars.innerHTML = `<div class="empty-state no-data">${msg}</div>`;
     els.cutHint.textContent = "";
     renderDraft(c, opts);
@@ -370,7 +371,7 @@ function renderAll() {
   }
   ui.renderCut(els.cutTable, els.cutHint, data, opts, c, rb);
   ui.renderBlind(els.blindTable, data, opts, c, rb);
-  ui.renderBlindPicks(els.blindPicksTable, data, opts, c, (id) => {
+  ui.renderBlindPicks(els.blindPicksGrid, data, opts, c, (id) => {
     if (!state.pool.includes(String(id))) state.pool = [...state.pool, String(id)];
     persist(); renderAll();
   }, rb);

@@ -170,19 +170,19 @@
         </div>
       </div>
 
-      <div class="setting">
-        <label for="blind-rate">Blind pick rate: <span id="blind-rate-val">40%</span></label>
-        <input type="range" id="blind-rate" min="0" max="100" step="1" value="40" />
-      </div>
-
-      <div class="setting">
-        <label for="min-pr">Min counter PR%: <span id="min-pr-val">1.5</span></label>
-        <input type="range" id="min-pr" min="0" max="10" step="0.1" value="1.5" />
-      </div>
-
-      <div class="setting">
-        <label for="min-games">Min candidate matchup games: <span id="min-games-val">100</span></label>
-        <input type="range" id="min-games" min="0" max="2000" step="50" value="100" />
+      <div class="settings-grid">
+        <div class="setting">
+          <label for="blind-rate">Blind pick rate: <span id="blind-rate-val">40%</span></label>
+          <input type="range" id="blind-rate" min="0" max="100" step="1" value="40" />
+        </div>
+        <div class="setting">
+          <label for="min-pr">Min counter PR%: <span id="min-pr-val">1.5</span></label>
+          <input type="range" id="min-pr" min="0" max="10" step="0.1" value="1.5" />
+        </div>
+        <div class="setting">
+          <label for="min-games">Min candidate matchup games: <span id="min-games-val">100</span></label>
+          <input type="range" id="min-games" min="0" max="2000" step="50" value="100" />
+        </div>
       </div>
     </section>
 
@@ -225,10 +225,10 @@
     </section>
 
     <!-- Best blind picks (meta-wide; addable) -->
-    <section class="panel" id="blindpicks-panel">
+    <section class="panel wide" id="blindpicks-panel">
       <h2>Best blind picks</h2>
       <p class="panel-desc">The safest first-picks in this lane you don't play yet — click one to add it to your pool.</p>
-      <div class="scroll-x"><table class="results-table" id="blindpicks-table"></table></div>
+      <div class="blindpicks-grid" id="blindpicks-grid"></div>
     </section>
 
     <!-- Usage simulation -->
