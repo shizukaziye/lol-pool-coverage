@@ -584,6 +584,10 @@
       "name": "Yunara",
       "slug": "yunara"
     },
+    "805": {
+      "name": "Locke",
+      "slug": "locke"
+    },
     "81": {
       "name": "Ezreal",
       "slug": "ezreal"
@@ -985,6 +989,10 @@
     "lissandra": {
       "name": "Lissandra",
       "riot_id": 127
+    },
+    "locke": {
+      "name": "Locke",
+      "riot_id": 805
     },
     "lucian": {
       "name": "Lucian",
