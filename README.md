@@ -15,7 +15,7 @@ Webapp to analyze League of Legends champion pool coverage against the current m
 - Which member is the safest blind pick
 - How often each champion would actually get used (split between blind picks and counter-picks)
 
-Data comes from lolalytics, scraped weekly. The current and previous 19 patches are kept and weighted by `0.9^k` where `k` is patches-since-current.
+Data comes from lolalytics, scraped weekly. The aggregator keeps the current and previous 19 patches and weights each by `0.9^k`, where `k` is patches-since-current.
 
 <!-- TODO: add docs/screenshot.png once the webapp ships. -->
 ![screenshot](docs/screenshot.png)
@@ -88,9 +88,9 @@ python -m http.server 8000
 
 The webapp is plain HTML/CSS/JS — no bundler, no install step.
 
-## Data refresh cadence
+## Data refresh schedule
 
-Data is refreshed automatically by [`.github/workflows/scrape.yml`](.github/workflows/scrape.yml) on the following schedule:
+The [`.github/workflows/scrape.yml`](.github/workflows/scrape.yml) workflow refreshes the data automatically on this schedule:
 
 - **Cron:** Mondays at 08:00 UTC.
 - **Manual:** any maintainer can trigger the workflow from the Actions tab.

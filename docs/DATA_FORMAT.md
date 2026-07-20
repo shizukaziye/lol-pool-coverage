@@ -133,4 +133,4 @@ Where the sum is taken only over patches that have data for that (C, opp) pair.
 
 ## Lane availability
 
-A champion appears in `weighted/{lane}.json` iff they have data in at least one snapshot for that lane. So the UI can flip a champion between lanes if they're played in multiple. The pool builder offers all champions with non-trivial PR in the selected lane (suggested threshold: 0.5% or 1.0%).
+A champion appears in `weighted/{lane}.json` iff they have data in at least one snapshot for that lane. So the UI can flip a champion between lanes if they're played in multiple. The pool builder offers all champions with meaningful PR in the selected lane (suggested threshold: 0.5% or 1.0%).

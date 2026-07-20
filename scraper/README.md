@@ -1,6 +1,6 @@
 # scraper
 
-Python tooling that pulls champion tier-list and matchup data from
+Python tools that pull champion tier-list and matchup data from
 [lolalytics.com](https://lolalytics.com) for all 5 lanes across the last 20
 patches and aggregates it into the weighted view the webapp consumes.
 
@@ -87,7 +87,7 @@ re-fetch).
 
 ## Cloudflare bypass
 
-Lolalytics is fronted by Cloudflare Turnstile. Plain `curl` and `requests` get
+Cloudflare Turnstile sits in front of lolalytics. Plain `curl` and `requests` get
 403'd. The scraper works around this by:
 
 1. Launching headless Chromium via Playwright with `playwright-stealth` applied
@@ -116,7 +116,7 @@ and let the user solve a Turnstile challenge once per cookie lifetime.
 - 0.5–1.0s jittered sleep between requests (configurable on `LolalyticsClient`).
 - Exponential backoff on 429.
 - A full weekly snapshot (all 5 lanes, ~50 champs/lane = ~250 fetches) takes
-  roughly 5–10 minutes end-to-end with these defaults.
+  roughly 5–10 minutes from start to finish with these defaults.
 
 ## Tests
 
@@ -125,7 +125,7 @@ pytest tests/
 ```
 
 `tests/test_aggregate.py` validates the weighted-aggregation formula against a
-hand-computed fixture under `tests/fixtures/`. The fixture is the canonical
+hand-computed fixture under `tests/fixtures/`. The fixture is the reference
 agreement point with the webapp's JS scoring tests — both sides run against the
 same numbers (see `docs/SCORING.md`).
 

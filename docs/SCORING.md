@@ -1,6 +1,6 @@
 # Scoring formulas
 
-These are the analyses the webapp surfaces. The same formulas should be implemented in `webapp/app.js` and tested against canonical fixtures.
+These are the analyses the webapp surfaces. Implement the same formulas in `webapp/app.js` and test them against reference fixtures.
 
 ## Inputs
 
@@ -106,8 +106,8 @@ candidate's own (inverted) matchup instead.
 
 The **draft assistant** lets you fill an enemy per role (up to all five) and ranks
 your pool by an effective Δ2 that combines the per-role matchups by **adding
-log-odds** (≡ multiplying odds), which is the principled way to fuse independent
-probabilistic edges:
+log-odds** (≡ multiplying odds), which is the sound way to combine independent
+edges:
 
 ```
 for each filled enemy role r with your champ P:
@@ -120,7 +120,7 @@ eff_d2     = (winProb - 0.5) * 100                             # display, same u
 
 Properties (verified in fixtures): even matchups stay even (`50% & 50% → 50%`), a
 favored + an equally-unfavored matchup cancel (`40% & 60% → 50%`), advantages
-compound but saturate below 100% (`90% & 90% → 98.8%`), and because off-role Δ2
+compound but level off below 100% (`90% & 90% → 98.8%`), and because off-role Δ2
 are naturally ~5× smaller than the lane, the lane dominates without any manual
 weighting. Pool members with no data vs any filled slot sort last.
 
@@ -148,7 +148,7 @@ counting **only** the comps where it would actually be your pick — so a champ
 that's strong vs the enemy top but collapses vs a common enemy jungler (Malphite
 into Sylas) gets no credit in those comps. The comp space is enumerated exactly
 when small (≤ `maxComps`, the deterministic limit of Monte Carlo) and
-seeded-sampled otherwise. `baseExpected` is your pool's mean best-response Δ2
+seeded-sampled otherwise. `baseExpected` is your pool's average best-response Δ2
 across the field.
 
 Each row's "good against" lists (`bestVs`, shown per role — 6 for your lane, 3

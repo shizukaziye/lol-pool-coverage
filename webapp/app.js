@@ -264,7 +264,7 @@ function renderDataNotice() {
     els.dataNotice.hidden = false;
   } else if (dataSource === "none") {
     els.dataNotice.className = "data-notice bad";
-    els.dataNotice.innerHTML = `<strong>No data loaded.</strong> Neither live data (<code>data/weighted/${lane}.json</code>) nor a fixture was found for this lane. Run the scraper to populate it.`;
+    els.dataNotice.innerHTML = `<strong>No data loaded.</strong> We found neither live data (<code>data/weighted/${lane}.json</code>) nor a fixture for this lane. Run the scraper to fill it.`;
     els.dataNotice.hidden = false;
   } else {
     els.dataNotice.hidden = true;
@@ -317,7 +317,7 @@ function renderAll() {
   const c = ctx();
   const opts = buildOpts();
   if (!data) {
-    const msg = `<strong>No meta data yet.</strong> The weekly scrape hasn't run for this lane, and no fixture was found. Run the scraper to populate <code>data/weighted/${lane}.json</code>.`;
+    const msg = `<strong>No meta data yet.</strong> The weekly scrape hasn't run for this lane, and we found no fixture. Run the scraper to fill <code>data/weighted/${lane}.json</code>.`;
     for (const t of [els.worstTable, els.addsTable, els.cutTable, els.blindTable]) {
       t.innerHTML = `<tbody><tr><td class="empty-state no-data">${msg}</td></tr></tbody>`;
     }

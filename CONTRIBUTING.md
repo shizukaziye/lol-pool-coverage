@@ -1,8 +1,8 @@
 # Contributing
 
-This repo is split into three independent areas, each owned by a separate
-subagent (or maintainer) and developed in parallel. The contracts between
-them are versioned files in `docs/`.
+This repo has three independent areas. A separate subagent (or maintainer)
+owns each and works on it in parallel. The contracts between them are
+versioned files in `docs/`.
 
 ## Areas
 

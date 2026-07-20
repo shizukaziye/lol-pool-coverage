@@ -191,7 +191,7 @@ export function renderWorst(table, data, opts, ctx, rosters = null) {
   // collapse into dead space; extra slots render empty.
   const cols = [...opts.pool];
   while (cols.length < 3) cols.push(null);
-  let html = `<thead><tr><th title="A popular meta pick you draft against. A role pill (e.g. JNG) marks an enemy from another lane.">Counter</th><th class="num" title="Pickrate: how often this champion is played in its lane.">PR%</th><th title="Your best answer in the pool to this threat (mains get the +1 buffer). The Δ2 columns show each champ's matchup.">Best answer</th>`;
+  let html = `<thead><tr><th title="A popular meta pick you draft against. A role badge (e.g. JNG) marks an enemy from another lane.">Counter</th><th class="num" title="Pickrate: how often this champion is played in its lane.">PR%</th><th title="Your best answer in the pool to this threat (mains get the +1 buffer). The Δ2 columns show each champ's matchup.">Best answer</th>`;
   for (const p of cols) html += `<th class="pool-col">${p ? champCellLarge(p, ctx) : ""}</th>`;
   html += `</tr></thead><tbody>`;
   for (const r of rows) {
@@ -324,7 +324,7 @@ export function renderBlind(table, data, opts, ctx, rosters = null) {
     table.innerHTML = `<tbody><tr><td class="empty-state">Add pool champions to see blind safety.</td></tr></tbody>`;
     return;
   }
-  let html = `<thead><tr><th title="A champion in your pool.">Champ</th><th class="num" title="Blind score — sum of this champ's losing matchups, each weighted by how common that opponent is. Less negative (closer to 0) = safer to blind-pick.">Blind (raw)</th><th class="num" title="Average Δ2 across every counter you have data for, weighted by pickrate. A normalized read on overall matchup spread.">Avg Δ2 (PR-weighted)</th></tr></thead><tbody>`;
+  let html = `<thead><tr><th title="A champion in your pool.">Champ</th><th class="num" title="Blind score — sum of this champ's losing matchups, each weighted by how common that opponent is. Less negative (closer to 0) = safer to blind-pick.">Blind (raw)</th><th class="num" title="Average Δ2 across every counter you have data for, weighted by pickrate. An overall read on your matchup spread.">Avg Δ2 (PR-weighted)</th></tr></thead><tbody>`;
   for (const r of rows) {
     html += `<tr><td>${champCell(r.p, ctx)}</td>${d2Cell(r.blind)}${d2Cell(r.blindWeighted)}</tr>`;
   }
