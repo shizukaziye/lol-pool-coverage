@@ -99,7 +99,7 @@ def test_missing_snapshot_is_skipped_not_zeroed(patched_paths, monkeypatch):
         # Missing 15.9 must not appear in source_patches.
         assert "15.9" not in out["source_patches"]
         # The d2 must still equal the 2-patch hand-computed value.
-        assert out["matchups"]["266"]["86"]["d2"] == pytest.approx(-0.5038, abs=1e-4)
+        assert out["matchups"]["266"]["86"]["d2"] == pytest.approx(-0.5010, abs=1e-4)
     finally:
         patches_path.unlink(missing_ok=True)
 

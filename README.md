@@ -15,7 +15,7 @@ Webapp to analyze League of Legends champion pool coverage against the current m
 - Which member is the safest blind pick
 - How often each champion would actually get used (split between blind picks and counter-picks)
 
-Data comes from lolalytics, scraped weekly. The aggregator keeps the current and previous 19 patches and weights each by `0.9^k`, where `k` is patches-since-current.
+Data comes from lolalytics, scraped weekly. The aggregator keeps the current and previous 19 patches and weights each by `0.85^k`, where `k` is patches-since-current.
 
 <!-- TODO: add docs/screenshot.png once the webapp ships. -->
 ![screenshot](docs/screenshot.png)
@@ -102,7 +102,7 @@ Each run:
 3. Rebuilds the weighted aggregate in `data/weighted/`.
 4. Commits the diff under `data/` as `chore: data refresh YYYY-MM-DD` and pushes to `main`.
 
-The aggregator keeps the current and previous 19 patches, weighted as `0.9^k` where `k = 0` is the current patch. That means patch 0 contributes 1.00, patch 5 contributes ~0.59, and patch 19 contributes ~0.14 — a soft fade rather than a hard cutoff. Patches with `k_back >= 20` are dropped.
+The aggregator keeps the current and previous 19 patches, weighted as `0.85^k` where `k = 0` is the current patch. That means patch 0 contributes 1.00, patch 5 contributes ~0.44, and patch 19 contributes ~0.05 — a soft fade rather than a hard cutoff. Patches with `k_back >= 20` are dropped.
 
 A data-only push to `main` triggers the [`deploy.yml`](.github/workflows/deploy.yml) workflow, so the public site is usually live within a few minutes of the Monday scrape finishing.
 

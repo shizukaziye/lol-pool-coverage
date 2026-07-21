@@ -629,7 +629,7 @@ function renderFooterFreshness() {
   els.footerFreshness.textContent = parts.join(" · ");
 }
 
-// Show which patches feed the current lane's blend and their 0.9^k weights.
+// Show which patches feed the current lane's blend and their 0.85^k weights.
 // `data.source_patches` lists the patches that actually had data for this lane;
 // k_back (and thus the weight) comes from the registry.
 function renderPatchBlend() {

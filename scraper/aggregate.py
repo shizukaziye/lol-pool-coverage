@@ -2,7 +2,7 @@
 Aggregate snapshots into the weighted view consumed by the webapp.
 
 For each lane, read every `data/snapshots/{patch}/{lane}.json` and combine
-them with weights `0.9^k_back` (k_back comes from data/patches.json) per the
+them with weights `0.85^k_back` (k_back comes from data/patches.json) per the
 formula in docs/DATA_FORMAT.md:
 
     weighted_d2(C, opp)  = sum_k( d2_k(C,opp) * games_k(C,opp) * w_k )
