@@ -20,6 +20,12 @@ on:
       - 'data/**'
       - 'index.html'
       - '.github/workflows/deploy.yml'
+  # The weekly scrape commits with GITHUB_TOKEN, and a push made with that token
+  # never fires other workflows. So the site sat on July data while the repo
+  # refreshed every Monday. Deploy after every scrape that finished cleanly.
+  workflow_run:
+    workflows: [scrape]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -33,6 +39,7 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
